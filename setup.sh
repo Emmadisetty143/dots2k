@@ -11,15 +11,15 @@ CONFIG_DIR="$SCRIPT_DIR/config"
 mkdir -p "$LOCAL_CONFIG_DIR"
 
 declare -a common_packages=(
-    curl wget git zsh tmux bat fzf unzip neovim ripgrep ncdu ranger vim zoxide
+    bat curl fzf git ncdu neovim ranger ripgrep tmux unzip vim wget zoxide zsh
 )
 
 declare -a pacman_desktop_packages=(
-    eza github-cli fd git-delta lazygit ttf-firacode-nerd wl-clipboard openssh base-devel gcc
+    base-devel eza fd gcc git-delta github-cli lazygit openssh ttf-firacode-nerd wl-clipboard
 )
 
 declare -a arch_extra_packages=(
-    "${pacman_desktop_packages[@]}" mise debugedit fakeroot
+    "${pacman_desktop_packages[@]}" debugedit fakeroot mise
 )
 
 declare -a steamos_extra_packages=(
@@ -27,27 +27,27 @@ declare -a steamos_extra_packages=(
 )
 
 declare -a fedora_extra_packages=(
-    eza gh lazygit fd-find wl-clipboard git-delta gcc
+    eza fd-find gcc gh git-delta lazygit wl-clipboard
 )
 
 declare -a debian_extra_packages=(
-    exa gh fd-find xclip autorandr nala gcc
+    autorandr exa fd-find gcc gh nala xclip
 )
 
 declare -a termux_extra_packages=(
-    eza gh fd git-delta openssh termux-tools nala gcc
+    eza fd gcc gh git-delta nala openssh termux-tools
 )
 
 declare -a config_dirs=(
-    "autorandr" "bat" "bundle" "cmus" "delta" "fish" "fontconfig" "gitignore.global"
-    "htop" "kitty" "lazygit" "libinput-gestures.conf" "mise" "ranger" "shell" "tmux"
-    "zsh" "sysinfo.conkyrc" "topgrade.toml" "bluetuith" "alacritty"
+    "alacritty" "autorandr" "bat" "bluetuith" "bundle" "cmus" "delta" "fish"
+    "fontconfig" "gitignore.global" "htop" "kitty" "lazygit" "libinput-gestures.conf"
+    "mise" "ranger" "shell" "sysinfo.conkyrc" "tmux" "topgrade.toml" "zsh"
 )
 
 declare -a home_files=(
-    "zsh/.zshenv" ".bashrc" ".dircolors" ".dmenurc" ".gitconfig" ".inputrc"
-    ".prettierrc" ".pryrc" ".pystartup" ".reek.yml" ".typos.toml"
-    ".vimrc" ".Xresources" ".editorconfig"
+    ".bashrc" ".dircolors" ".dmenurc" ".editorconfig" ".gitconfig"
+    ".inputrc" ".prettierrc" ".pryrc" ".pystartup" ".reek.yml" ".typos.toml"
+    ".vimrc" "zsh/.zshenv" ".Xresources"
 )
 
 append_once() {

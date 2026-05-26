@@ -1,4 +1,4 @@
-set nocompatible   " Disable vi compatibilty
+set nocompatible   " Disable vi compatibility
 set encoding=utf-8 " Use UTF-8
 set showmatch      " Show matching brackets
 set ignorecase     " Do case insensitive matching
