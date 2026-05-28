@@ -40,7 +40,7 @@ declare -a termux_extra_packages=(
 
 declare -a config_dirs=(
     "alacritty" "autorandr" "bat" "bluetuith" "bundle" "cmus" "delta" "fish"
-    "fontconfig" "gitignore.global" "htop" "kitty" "lazygit" "libinput-gestures.conf"
+    "fontconfig" "git" "htop" "kitty" "lazygit" "libinput-gestures.conf"
     "mise" "ranger" "shell" "sysinfo.conkyrc" "tmux" "topgrade.toml" "zsh"
 )
 
