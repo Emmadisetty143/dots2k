@@ -171,6 +171,7 @@ alias malia='"$EDITOR" ~/.config/mac/aliases.sh'
 alias menva='"$EDITOR" ~/.config/mac/environment.sh'
 alias func='"$EDITOR" ~/.config/shell/functions.sh'
 alias gitc='"$EDITOR" ~/.config/git/config'
+alias gitcl='"$EDITOR" ~/.config/git/gitconfig.local'
 alias kitc='"$EDITOR" ~/.config/kitty/kitty.conf'
 alias loca='"$EDITOR" ~/.config/shell/local.sh'
 alias nvimc="nvim ~/.config/nvim/init.lua"
