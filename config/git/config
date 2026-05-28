@@ -91,7 +91,8 @@
     updateRefs = true
 
 [include]
-    path = ~/.config/delta/delta.gitconfig
+    path = ~/.config/git/delta.gitconfig
+    path = ~/.config/git/gitconfig.local
 
 [delta]
     features = mantis-shrimp
