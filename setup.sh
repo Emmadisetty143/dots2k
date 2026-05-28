@@ -39,13 +39,13 @@ declare -a termux_extra_packages=(
 )
 
 declare -a config_dirs=(
-    "alacritty" "autorandr" "bat" "bluetuith" "bundle" "cmus" "delta" "fish"
+    "alacritty" "autorandr" "bat" "bluetuith" "bundle" "cmus" "fish"
     "fontconfig" "git" "htop" "kitty" "lazygit" "libinput-gestures.conf"
     "mise" "ranger" "shell" "sysinfo.conkyrc" "tmux" "topgrade.toml" "zsh"
 )
 
 declare -a home_files=(
-    ".bashrc" ".dircolors" ".dmenurc" ".editorconfig" ".gitconfig"
+    ".bashrc" ".dircolors" ".dmenurc" ".editorconfig"
     ".inputrc" ".prettierrc" ".pryrc" ".pystartup" ".reek.yml" ".typos.toml"
     ".vimrc" "zsh/.zshenv" ".Xresources"
 )
