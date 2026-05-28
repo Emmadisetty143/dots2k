@@ -58,7 +58,7 @@ cd dots2k
 ### Git Setup
 
 > [!IMPORTANT]
-> Make sure to change the `user.name` and `user.email` in the `~/.gitconfig` file with your own or use `git config --global user.name "Your Name"`
+> Make sure to change the `user.name` and `user.email` in the `~/.config/git/config` file with your own or use `git config --global user.name "Your Name"`
 >
 > I use GPG signing for commits, check [this](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-new-gpg-key-to-your-github-account) for setting it up, or use `git config --global commit.gpgSign false` to disable it.
 
@@ -106,9 +106,11 @@ dots2k comes with a lot of keybindings, here are some of them:
 ### Development Tools
 
 - [bundle](./config/bundle/config) - A Ruby gem dependency manager.
-- [delta](./config/delta/delta.gitconfig) - A syntax-highlighting pager for git and diff output.
-- [git](./config/.gitconfig) - Global git configurations.
-  - [gitignore.global](./config/gitignore.global) - Global gitignore settings, used in gitconfig.
+- [git](./config/git/config) - Global git configurations.
+  - [delta](./config/git/delta.gitconfig) - A syntax-highlighting pager for git and diff output.
+  - [gitattributes.global](./config/git/gitattributes.global) - Global git attributes, used in config.
+  - [gitconfig.local](./config/git/gitconfig.local) - Local git configurations, ignored by git.
+  - [gitignore.global](./config/git/gitignore.global) - Global gitignore settings, used in config.
 - [lazygit](./config/lazygit/config.yml) - A simple terminal UI for git commands.
 - [luarc](./config/.luarc.json) - Configs for the Lua language.
 - [prettier](./config/.prettierrc) - A code formatter.
