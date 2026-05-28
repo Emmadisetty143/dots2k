@@ -17,6 +17,9 @@ config/cmus/*
 # local shell configs
 config/shell/local.sh
 
+# local git configs
+config/git/gitconfig.local
+
 # tmux plugins
 config/tmux/plugins/
 
