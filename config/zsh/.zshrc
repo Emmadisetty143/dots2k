@@ -4,7 +4,6 @@ IS_MAC=false
 # Load configs in specific order
 source ~/.config/shell/environment.sh
 $IS_MAC && [ -f ~/.config/mac/environment.sh ] && source ~/.config/mac/environment.sh
-source "$ZDOTDIR/prompt/init.zsh"
 source "$ZDOTDIR/options.zsh"
 source "$ZDOTDIR/zinit.zsh"
 source "$ZDOTDIR/completions.zsh"

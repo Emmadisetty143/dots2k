@@ -11,8 +11,13 @@ MAGIC_ENTER_GIT_COMMAND="git status -s && git diff HEAD"
 MAGIC_ENTER_OTHER_COMMAND="eza -Ah -s=extension --group-directories-first --icons"
 
 # Theme - load immediately for instant prompt
-zinit ice depth=1
-zinit light romkatv/powerlevel10k
+if [[ "$TERM" == "linux" ]]; then
+    source ~/.config/shell/prompt.sh
+else
+    zinit ice depth=1
+    zinit light romkatv/powerlevel10k
+    source "$ZDOTDIR/prompt/init.zsh"
+fi
 
 # Core plugins - immediate load after prompt
 zinit ice lucid wait'0a' atinit'ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20'
