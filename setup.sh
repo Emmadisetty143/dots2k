@@ -15,7 +15,7 @@ declare -a common_packages=(
 )
 
 declare -a pacman_desktop_packages=(
-    base-devel eza fd gcc git-delta github-cli lazygit openssh ttf-firacode-nerd wl-clipboard
+    base-devel eza fd gcc git-delta github-cli lazygit openssh tree-sitter-cli ttf-firacode-nerd wl-clipboard
 )
 
 declare -a arch_extra_packages=(
