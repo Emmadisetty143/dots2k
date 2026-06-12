@@ -9,7 +9,7 @@ __build_ys_prompt() {
         user_esc="%n"
         host_esc="%m"
         dir_esc="%~"
-        time_esc="%D{%I:%M:%S %p}"
+        time_esc="%D{%I:%M:%S %P}"
         prompt_char="%#"
     else
         echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"
@@ -18,7 +18,7 @@ __build_ys_prompt() {
         user_esc="\u"
         host_esc="\h"
         dir_esc="\w"
-        time_esc="\D{%I:%M:%S %p}"
+        time_esc="\D{%I:%M:%S %P}"
         prompt_char="\\\$"
     fi
 
@@ -66,7 +66,7 @@ __build_ys_prompt() {
     fi
 
     # Assemble prompt
-    local result_prompt="${newline}${bold_blue}#${reset} ${user_part} @ ${green}${host_esc}${reset} in ${bold_yellow}${dir_esc}${reset}${git_part} [${time_esc}]${exit_part}${newline}${bold_red}${prompt_char}${reset} "
+    local result_prompt="${newline}${bold_blue}#${reset} ${user_part} @ ${green}${host_esc}${reset} in ${bold_yellow}${dir_esc}${reset}${git_part} ${time_esc}${exit_part}${newline}${bold_red}${prompt_char}${reset} "
 
     if [[ -n "$ZSH_VERSION" ]]; then
         PROMPT="$result_prompt"
