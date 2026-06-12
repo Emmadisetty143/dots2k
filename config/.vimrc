@@ -69,7 +69,6 @@ function! FZF() abort
         call delete(l:tempname)
     endtry
 endfunction
-command! -nargs=* Files call FZF()
 
 let g:netrw_liststyle = 3
 
@@ -78,8 +77,9 @@ let mapleader = ' '
 inoremap jj <Esc>
 nmap Q :qa!<CR>
 nmap <leader>e :Lexplore<CR>
-nmap <leader>f :Files<cr>
+nmap <leader>f :FZF<cr>
 nmap <leader>qq :q<CR>
+nmap <leader>qa :qa<CR>
 nmap <leader>r :source ~/.vimrc<CR>
 nmap <leader>s :setlocal spell!<CR>
 nmap <leader>S :nohlsearch<CR>
