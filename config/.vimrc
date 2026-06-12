@@ -111,4 +111,15 @@ endif
 " Always use terminal background
 autocmd ColorScheme * highlight! Normal ctermbg=NONE guibg=NONE
 autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
-colorscheme catppuccin
+
+" Tone down cursor line and status bar highlight colors globally
+autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
+autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
+autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
+
+" Load colorscheme with fallback to built-in 'slate'
+try
+    colorscheme catppuccin
+catch /^Vim\%((\a\+)\)\=:E185/
+    colorscheme slate
+endtry
