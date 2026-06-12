@@ -93,6 +93,36 @@ if has("autocmd")
 endif
 
 let g:netrw_liststyle = 3
+let g:netrw_banner = 0  " Hide help banner to match nvim-tree
+let g:netrw_winsize = 25 " Match default Neovim explorer width
+let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
+let g:netrw_altv = 1         " Open vertical splits on the right
+let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
+
+function! NetrwSettings() abort
+    " a: Add new file (Vim standard: %)
+    nmap <buffer> a %
+    " A: Add new directory (Vim standard: d)
+    nmap <buffer> A d
+    " r: Rename file or directory (Vim standard: R)
+    nmap <buffer> r R
+    " d: Delete file or directory (Vim standard: D)
+    nmap <buffer> d D
+    " H: Toggle hidden files (Vim standard: gh)
+    nmap <buffer> H gh
+    " q: Toggle/close Lexplore sidebar cleanly
+    nmap <buffer> q :Lexplore<CR>
+
+    " Navigation & Opening Files
+    " l: Toggle folder expand/collapse or open file (Vim standard: Enter)
+    nmap <buffer> l <CR>
+endfunction
+
+augroup NetrwCustom
+    autocmd!
+    autocmd FileType netrw call NetrwSettings()
+augroup END
+
 
 " Keybindings
 let mapleader = ' '
