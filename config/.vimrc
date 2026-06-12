@@ -1,3 +1,35 @@
+" Load files using fzf
+function! FZF() abort
+    let l:tempname = tempname()
+    execute 'silent !fzf --multi ' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
+    try
+        execute 'cfile ' . l:tempname
+        redraw!
+    finally
+        call delete(l:tempname)
+    endtry
+endfunction
+
+" Native Buffer Tabline at the top (replaces standard tabline)
+function! BufferTabLine() abort
+    let l:s = ''
+    let l:bufs = filter(range(1, bufnr('$')), 'buflisted(v:val)')
+    let l:current = bufnr('%')
+    for l:buf in l:bufs
+        if l:buf == l:current
+            let l:s .= '%#TabLineSel#'
+        else
+            let l:s .= '%#TabLine#'
+        endif
+        let l:name = bufname(l:buf)
+        let l:name = empty(l:name) ? '[No Name]' : fnamemodify(l:name, ':t')
+        let l:modified = getbufvar(l:buf, '&modified') ? '*' : ''
+        let l:s .= ' ' . l:buf . ' ' . l:name . l:modified . ' '
+    endfor
+    let l:s .= '%#TabLineFill#%T'
+    return l:s
+endfunction
+
 set nocompatible   " Disable vi compatibility
 set encoding=utf-8 " Use UTF-8
 set showmatch      " Show matching brackets
@@ -44,6 +76,8 @@ set hidden         " Enable switching with modified buffers
 set undolevels=999 " Lots of these
 set undodir=$HOME/.local/state/vim/undo " Enable undo dir
 set undofile       " Enable persistent undos across files
+set tabline=%!BufferTabLine()
+set showtabline=2 " Always show the buffer list at the top
 setlocal spell spelllang=en "Set spell check language to en
 setlocal spell! " Disable spellchecking by default
 syntax enable      " Turn on syntax highlighting
@@ -57,18 +91,6 @@ endif
 if has("autocmd")
     autocmd BufWritePre * %s/\s\+$//e
 endif
-
-" Load files using fzf
-function! FZF() abort
-    let l:tempname = tempname()
-    execute 'silent !fzf --multi ' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
-    try
-        execute 'cfile ' . l:tempname
-        redraw!
-    finally
-        call delete(l:tempname)
-    endtry
-endfunction
 
 let g:netrw_liststyle = 3
 
@@ -112,10 +134,13 @@ endif
 autocmd ColorScheme * highlight! Normal ctermbg=NONE guibg=NONE
 autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
 
-" Tone down cursor line and status bar highlight colors globally
+" Tone down cursor line, status bar, and tabline highlight colors globally
 autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
 autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
 autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
+autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
+autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
+autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=234 guibg=#1e1e2e
 
 " Load colorscheme with fallback to built-in 'slate'
 try
