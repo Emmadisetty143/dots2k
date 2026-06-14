@@ -62,12 +62,12 @@ end
 
 # adds the directories /spec and /test directories to the path if they exist and not already included
 before_session_hook = Pry::Hooks.new.add_hook(:before_session, :add_dirs_to_load_path) do
-  current_dir = `pwd`.chomp
+  current_dir = Dir.pwd
   dirs_added = %w[spec test presenters lib]
                .map { |d| "#{current_dir}/#{d}" }
                .map do |path|
     if File.exist?(path) && $LOAD_PATH.exclude?(path)
-      i $LOAD_PATH << path
+      $LOAD_PATH << path
       path
     end
   end.compact
