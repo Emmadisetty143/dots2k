@@ -84,7 +84,6 @@
 
 [push]
     autoSetupRemote = true
-    autoSetupRemove = true
 
 [rebase]
     autoStash = true
