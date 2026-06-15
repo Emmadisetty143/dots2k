@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 __build_ys_prompt() {
     local exit_val=$?
-    local start_esc="" end_esc="" local user_esc="" host_esc="" dir_esc="" time_esc="" prompt_char=""
+    local start_esc="" end_esc="" user_esc="" host_esc="" dir_esc="" time_esc="" prompt_char=""
 
     if [[ -n "$ZSH_VERSION" ]]; then
         start_esc="%{"
