@@ -174,3 +174,30 @@ fancy-ctrl-z() {
         zle clear-screen -w
     fi
 }
+
+_git_run_on_files() {
+    local source_type="$1" pattern="$2"
+    shift 2
+    local files
+    if [ "$source_type" = "diff" ]; then
+        files=$(git diff --name-only main 2>/dev/null)
+    else
+        files=$(git ls-files --modified --others --exclude-standard 2>/dev/null)
+    fi
+    files=$(echo "$files" | grep -E "$pattern" | grep -v "schema.rb")
+    if [ -n "$files" ]; then
+        echo "$files" | xargs "$@"
+    fi
+}
+
+eslx() { _git_run_on_files diff "\.(js|jsx|ts|tsx)$" yarn eslint --fix "$@"; }
+eslc() { _git_run_on_files modified "\.(js|jsx|ts|tsx)$" yarn eslint --fix "$@"; }
+
+jstx() { _git_run_on_files diff "\.test\.(js|jsx|ts|tsx)$" yarn jest --silent "$@"; }
+jstc() { _git_run_on_files modified "\.test\.(js|jsx|ts|tsx)$" yarn jest --silent "$@"; }
+
+rcpx() { _git_run_on_files diff "\.(rb|rake)$" bundle exec rubocop -A "$@"; }
+rcpc() { _git_run_on_files modified "\.(rb|rake)$" bundle exec rubocop -A "$@"; }
+
+rspx() { _git_run_on_files diff "_spec\.rb$" bundle exec rspec "$@"; }
+rspc() { _git_run_on_files modified "_spec\.rb$" bundle exec rspec "$@"; }
