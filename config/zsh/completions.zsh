@@ -62,7 +62,21 @@ zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
     *) git log --color=always $word ;;
 esac'
 
-if type mise >/dev/null 2>&1; then eval "$(mise activate zsh)"; fi
-if type navi >/dev/null 2>&1; then eval "$(navi widget zsh)"; fi
-if type fzf >/dev/null 2>&1; then eval "$(fzf --zsh)"; fi
-if type zoxide >/dev/null 2>&1; then eval "$(zoxide init zsh)"; fi
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/shell_init"
+[[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+
+cache_zsh_init() {
+    local tool="$1" init_cmd="$2"
+    if [[ ! -f "$cache_dir/${tool}.zsh" ]] && type "$tool" >/dev/null 2>&1; then
+        eval "$init_cmd" > "$cache_dir/${tool}.zsh"
+    fi
+    [[ -f "$cache_dir/${tool}.zsh" ]] && source "$cache_dir/${tool}.zsh"
+}
+
+cache_zsh_init "dircolors" "dircolors -b ~/.dircolors"
+cache_zsh_init "zoxide" "zoxide init zsh"
+cache_zsh_init "fzf" "fzf --zsh"
+cache_zsh_init "navi" "navi widget zsh"
+cache_zsh_init "mise" "mise activate zsh"
+
+unfunction cache_zsh_init
