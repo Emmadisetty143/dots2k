@@ -72,6 +72,7 @@ set sessionoptions-=options
 set viewoptions-=option
 set cursorline     " Highlight current line
 set exrc           " Use vimrc from local dir
+set secure         " Disable shell/write commands in local vimrc
 set hidden         " Enable switching with modified buffers
 set undolevels=999 " Lots of these
 set undodir=$HOME/.local/state/vim/undo " Enable undo dir
