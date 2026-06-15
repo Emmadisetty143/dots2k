@@ -121,7 +121,6 @@ alias gsb='git status --short --branch'
 alias gsd="git status -s && git diff HEAD"
 alias gsv="git status -v"
 alias gss="git status -s"
-alias gss='git status --short'
 alias gst='git status'
 
 alias gsh='git show'
