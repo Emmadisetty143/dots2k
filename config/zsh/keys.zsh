@@ -26,6 +26,13 @@ quote-word() {
 }
 zle -N quote-word
 
+open-tea() {
+  zle -I
+  tea
+  zle redisplay
+}
+zle -N open-tea
+
 bindkey "^[." insert-last-word
 bindkey "^[m" copy-earlier-word
 bindkey "^[f" forward-word
@@ -42,7 +49,7 @@ bindkey -s "^n" ' tdo -f^M ^M'
 bindkey "^o" edit-command-line
 bindkey "^q" quote-word
 bindkey "^s" forward-word
-bindkey -s "^t" ' tea^M ^M'
+bindkey "^t" open-tea
 bindkey "^u" undo
 bindkey "^x^e" edit-command-line
 bindkey "^x^v" vi-cmd-mode
