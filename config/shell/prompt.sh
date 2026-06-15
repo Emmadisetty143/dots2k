@@ -52,7 +52,8 @@ __build_ys_prompt() {
     if branch=$(git symbolic-ref --short HEAD 2>/dev/null); then
         local status_color="${green}"
         local status_char="o"
-        if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
+        if ! git diff-index --quiet HEAD -- 2>/dev/null ||
+            [[ -n "$(git ls-files --others --exclude-standard --directory --no-empty-directory --max-depth=1 2>/dev/null | head -n 1)" ]]; then
             status_color="${red}"
             status_char="x"
         fi
