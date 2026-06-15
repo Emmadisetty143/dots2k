@@ -5,13 +5,14 @@
 
 () {
     function prompt_mise() {
-        local plugins=("${(@f)$(mise ls --current --offline 2>/dev/null | awk '!/\(symlink\)/ && $3!="~/.tool-versions" && $3!="~/.config/mise/config.toml" {print $1, $2}')}")
-        local plugin
-        for plugin in ${(k)plugins}; do
-            local parts=("${(@s/ /)plugin}")
-            local tool=${(U)parts[1]}
-            local version=${parts[2]}
-            p10k segment -r -i "${tool}_ICON" -s $tool -t "$version"
+        local dir tool version
+        for dir in $path; do
+            if [[ "$dir" =~ "mise/installs/([^/]+)/([^/]+)(/bin)?$" ]]; then
+                tool="${(U)match[1]}"
+                version="${match[2]}"
+                [[ "$tool" == "USAGE" ]] && continue
+                p10k segment -r -i "${tool}_ICON" -s "$tool" -t "$version"
+            fi
         done
     }
 
