@@ -146,9 +146,10 @@ nmap <C-l> <C-w>l
 nmap <C-j> <C-w>j
 nmap <C-k> <C-w>k
 
-" Copy Paste from X11 Clipboard
-vmap <Leader>yy :!xclip -f -sel clip<CR>
-map <Leader>pp mz:-1r !xclip -o -sel clip<CR>`z
+" Copy Paste from System Clipboard (cross-platform, Wayland/X11 compatible)
+set clipboard+=unnamedplus
+vmap <Leader>yy "+y
+map <Leader>pp mz:put! +<CR>`z
 
 " Drag Visual selections
 vnoremap K xkP`[V`]
