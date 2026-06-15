@@ -79,6 +79,7 @@ set undodir=$HOME/.local/state/vim/undo " Enable undo dir
 set undofile       " Enable persistent undos across files
 set tabline=%!BufferTabLine()
 set showtabline=2 " Always show the buffer list at the top
+set clipboard+=unnamedplus " Copy Paste from System Clipboard
 setlocal spell spelllang=en "Set spell check language to en
 setlocal spell! " Disable spellchecking by default
 syntax enable      " Turn on syntax highlighting
@@ -146,10 +147,22 @@ nmap <C-l> <C-w>l
 nmap <C-j> <C-w>j
 nmap <C-k> <C-w>k
 
-" Copy Paste from System Clipboard (cross-platform, Wayland/X11 compatible)
-set clipboard+=unnamedplus
-vmap <Leader>yy "+y
-map <Leader>pp mz:put! +<CR>`z
+
+if has('wsl')
+    if executable('win32yank.exe')
+        let s:win32yank = 'win32yank.exe'
+    elseif executable('win32yank')
+        let s:win32yank = 'win32yank'
+    endif
+endif
+
+if exists('s:win32yank')
+    exec 'vmap <Leader>yy :w !' . s:win32yank . ' -i --crlf<CR><CR>'
+    exec 'map <Leader>pp mz:-1r !' . s:win32yank . ' -o --lf<CR>`z'
+else
+    vmap <Leader>yy "+y
+    map <Leader>pp mz:put! +<CR>`z
+endif
 
 " Drag Visual selections
 vnoremap K xkP`[V`]
@@ -173,6 +186,19 @@ autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=238 ctermbg=234 
 autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
 autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
 autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=234 guibg=#1e1e2e
+
+" Highlight on yank (copy)
+function! s:HighlightYank() abort
+    if v:event.operator ==# 'y' && exists('*matchaddpos')
+        let l:m = matchaddpos('Visual', range(line("'["), line("']")))
+        call timer_start(150, {-> execute('silent! call matchdelete(' . l:m . ')')})
+    endif
+endfunction
+
+augroup HighlightYank
+    autocmd!
+    autocmd TextYankPost * call s:HighlightYank()
+augroup END
 
 " Load colorscheme with fallback to built-in 'slate'
 try
