@@ -21,10 +21,24 @@ $IS_MAC && [ -f ~/.config/mac/aliases.sh ] && source ~/.config/mac/aliases.sh
 alias reload="source ~/.bashrc"
 
 # Tool confs for bash
-if type navi >/dev/null 2>&1; then eval "$(navi widget bash)"; fi
-if type zoxide >/dev/null 2>&1; then eval "$(zoxide init bash)"; fi
-if type fzf >/dev/null 2>&1; then eval "$(fzf --bash)"; fi
-if type mise >/dev/null 2>&1; then eval "$(mise activate bash)"; fi
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/shell_init"
+[[ -d "$cache_dir" ]] || mkdir -p "$cache_dir"
+
+cache_bash_init() {
+    local tool="$1" init_cmd="$2"
+    if [[ ! -f "$cache_dir/${tool}.bash" ]] && type "$tool" >/dev/null 2>&1; then
+        eval "$init_cmd" > "$cache_dir/${tool}.bash"
+    fi
+    [[ -f "$cache_dir/${tool}.bash" ]] && source "$cache_dir/${tool}.bash"
+}
+
+cache_bash_init "dircolors" "dircolors -b ~/.dircolors"
+cache_bash_init "navi" "navi widget bash"
+cache_bash_init "zoxide" "zoxide init bash"
+cache_bash_init "fzf" "fzf --bash"
+cache_bash_init "mise" "mise activate bash"
+
+unset -f cache_bash_init
 
 # Local configurations
 [ -f ~/.config/shell/local.sh ] && source ~/.config/shell/local.sh
