@@ -26,11 +26,27 @@ quote-word() {
 }
 zle -N quote-word
 
-open-tea() {
+# Helper to run an interactive application cleanly in the foreground
+_run_foreground_widget() {
+  local cmd="$1"
   zle -I
-  tea
+  eval "$cmd"
   zle redisplay
 }
+
+open-dexe() { _run_foreground_widget "dexe" }
+zle -N open-dexe
+
+open-lazygit() { _run_foreground_widget "lazygit" }
+zle -N open-lazygit
+
+open-reload() { _run_foreground_widget "source \$ZDOTDIR/.zshrc" }
+zle -N open-reload
+
+open-tdo() { _run_foreground_widget "tdo -f" }
+zle -N open-tdo
+
+open-tea() { _run_foreground_widget "tea" }
 zle -N open-tea
 
 bindkey "^[." insert-last-word
@@ -39,13 +55,13 @@ bindkey "^[f" forward-word
 bindkey "^[b" backward-word
 bindkey "^a" beginning-of-line
 bindkey "^b" backward-word
-bindkey -s "^d" ' dexe^M ^M'
+bindkey "^d" open-dexe
 bindkey "^e" end-of-line
 bindkey "^f" fzf-file-widget
-bindkey -s "^g" ' lazygit^M ^M'
-bindkey -s "^h" ' reload^M ^M'
+bindkey "^g" open-lazygit
+bindkey "^h" open-reload
 bindkey "^k" autosuggest-accept
-bindkey -s "^n" ' tdo -f^M ^M'
+bindkey "^n" open-tdo
 bindkey "^o" edit-command-line
 bindkey "^q" quote-word
 bindkey "^s" forward-word
