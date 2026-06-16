@@ -1,5 +1,7 @@
 [tools]
 usage = "latest"
+go = "latest"
+rust = "latest"
 node = "22"
 python = "3.13.11"
 ruby = "3.2.4"
