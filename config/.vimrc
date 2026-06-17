@@ -145,6 +145,14 @@ vnoremap X "_d
 " Visual overwrite paste (prevent visual paste from replacing default register)
 vnoremap p "_dP
 
+" Persist visual selection when indenting
+vnoremap < <gv
+vnoremap > >gv
+
+" Math increments (matches Neovim)
+nnoremap - <C-x>
+nnoremap = <C-a>
+
 nmap Q :qa!<CR>
 nmap <leader>e :Lexplore<CR>
 nmap <leader>f :FZF<cr>
