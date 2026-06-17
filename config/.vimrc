@@ -129,6 +129,22 @@ augroup END
 " Keybindings
 let mapleader = ' '
 inoremap jj <Esc>
+
+" Centered search result scrolling
+nnoremap <C-d> <C-d>zz
+nnoremap <C-u> <C-u>zz
+nnoremap <expr> n (v:searchforward ? 'nzzzv' : 'Nzzzv')
+nnoremap <expr> N (v:searchforward ? 'Nzzzv' : 'nzzzv')
+
+" Blackhole deletes (prevent character deletions from polluting clipboard)
+nnoremap x "_x
+vnoremap x "_x
+nnoremap X "_D
+vnoremap X "_d
+
+" Visual overwrite paste (prevent visual paste from replacing default register)
+vnoremap p "_dP
+
 nmap Q :qa!<CR>
 nmap <leader>e :Lexplore<CR>
 nmap <leader>f :FZF<cr>
