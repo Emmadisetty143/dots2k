@@ -35,6 +35,7 @@ set backspace=indent,eol,start " Delete everything
 set formatoptions+=j " Delete comment character when joining
 set listchars=tab:,nbsp:_,trail:,extends:>,precedes:<
 set list           " Highlight non whitespace characters
+set fillchars=eob:\  " Clean trailing tildes
 set nrformats-=octal " 007 != 010
 set sessionoptions-=options
 set viewoptions-=option
@@ -60,15 +61,35 @@ let g:netrw_altv = 1         " Open vertical splits on the right
 let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
 
-" Have Vim jump to the last position when reopening a file
-if has("autocmd")
-    au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\""
-endif
+" Auto-create parent directory if it does not exist
+function! s:AutoCreateDir() abort
+    let l:dir = expand('<afile>:p:h')
+    if !isdirectory(l:dir)
+        call mkdir(l:dir, 'p')
+    endif
+endfunction
 
-" Remove trailing whitespace on write
-if has("autocmd")
+augroup GeneralAutocmds
+    autocmd!
+    " Go to last position when reopening a file
+    autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+
+    " Remove trailing whitespace on write
     autocmd BufWritePre * %s/\s\+$//e
-endif
+
+    " Resize splits if window got resized
+    autocmd VimResized * tabdo wincmd =
+
+    " Wrap and check spell in text filetypes
+    autocmd FileType gitcommit,markdown setlocal wrap spell
+
+    " Disable formatoptions comment continuation on new lines
+    autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+
+    " Auto-create directory when saving a file
+    autocmd BufWritePre * call s:AutoCreateDir()
+augroup END
+
 
 " Highlight on yank (copy)
 function! s:HighlightYank() abort
