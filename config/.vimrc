@@ -142,6 +142,93 @@ function! s:FzfGrep() abort
         \ }))
 endfunction
 
+" Fuzzy search git files (using git ls-files)
+function! s:FzfGitFiles() abort
+    if isdirectory('.git') || system('git rev-parse --is-inside-work-tree') =~# 'true'
+        call fzf#run(fzf#wrap({
+            \ 'source': 'git ls-files --exclude-standard --cached --others',
+            \ 'sink': 'edit',
+            \ 'options': '--multi --prompt="GitFiles> "'
+            \ }))
+    else
+        echo 'Not in a git repository'
+    endif
+endfunction
+
+" Fuzzy search old files history
+function! s:FzfHistory() abort
+    call fzf#run(fzf#wrap({
+        \ 'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'),
+        \ 'sink': 'edit',
+        \ 'options': '--prompt="History> "'
+        \ }))
+endfunction
+
+" Fuzzy search lines in all open buffers
+function! s:FzfLines() abort
+    let l:lines = []
+    for l:buf in filter(range(1, bufnr('$')), 'buflisted(v:val) && bufloaded(v:val)')
+        let l:bufname = bufname(l:buf)
+        let l:bufname = empty(l:bufname) ? '[No Name]' : l:bufname
+        let l:content = getbufline(l:buf, 1, '$')
+        let l:idx = 1
+        for l:line in l:content
+            call add(l:lines, printf('%s:%d:%s', l:bufname, l:idx, l:line))
+            let l:idx += 1
+        endfor
+    endfor
+    call fzf#run(fzf#wrap({
+        \ 'source': l:lines,
+        \ 'sink': function('s:GrepSelect'),
+        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="Lines> "'
+        \ }))
+endfunction
+
+" Fuzzy search lines in current buffer
+function! s:FzfBLines() abort
+    let l:lines = []
+    let l:bufname = bufname('%')
+    let l:bufname = empty(l:bufname) ? '[No Name]' : l:bufname
+    let l:content = getbufline('%', 1, '$')
+    let l:idx = 1
+    for l:line in l:content
+        call add(l:lines, printf('%s:%d:%s', l:bufname, l:idx, l:line))
+        let l:idx += 1
+    endfor
+    call fzf#run(fzf#wrap({
+        \ 'source': l:lines,
+        \ 'sink': function('s:GrepSelect'),
+        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="BLines> "'
+        \ }))
+endfunction
+
+" Fuzzy search word under cursor
+function! s:FzfGrepWord() abort
+    let l:word = expand('<cword>')
+    if empty(l:word) | return | endif
+    let l:cmd = 'rg --column --line-number --no-heading --color=always --smart-case ' . shellescape(l:word)
+    call fzf#run(fzf#wrap({
+        \ 'source': l:cmd,
+        \ 'sink': function('s:GrepSelect'),
+        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="GrepWord: ' . l:word . '> "'
+        \ }))
+endfunction
+
+" Safe wrapper to edit Zsh config files resolving $ZDOTDIR dynamically
+function! s:EditZshConfig(file) abort
+    let l:zdotdir = empty($ZDOTDIR) ? $HOME : $ZDOTDIR
+    execute 'edit ' . fnameescape(l:zdotdir . '/' . a:file)
+endfunction
+
+" Safe wrapper to edit Git config files, checking common paths
+function! s:EditGitConfig() abort
+    if filereadable(expand('~/.config/git/config'))
+        edit ~/.config/git/config
+    else
+        edit ~/.gitconfig
+    endif
+endfunction
+
 " Seamless Vim/Tmux Split Navigation
 function! s:TmuxNavigate(direction) abort
     let l:winnr = winnr()
@@ -277,15 +364,65 @@ nnoremap - <C-x>
 nnoremap = <C-a>
 
 nmap Q :qa!<CR>
-nmap <leader>e :Lexplore<CR>
+nmap <leader>ee :Lexplore<CR>
 
 " Fuzzy search maps matching pickme.nvim / Seeker
+nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
+nnoremap <leader>/  :history /<CR>
+nnoremap <leader>:  :history :<CR>
 nnoremap <leader><space> :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
 nnoremap <leader>fa :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
-nnoremap <leader>ff :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
-nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
 nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
+nnoremap <leader>ff :call <SID>FzfGitFiles()<CR>
 nnoremap <leader>fg :call <SID>FzfGrep()<CR>
+nnoremap <leader>fl :lopen<CR>
+nnoremap <leader>fo :call <SID>FzfLines()<CR>
+nnoremap <leader>fq :copen<CR>
+nnoremap <leader>fr :call <SID>FzfHistory()<CR>
+nnoremap <leader>fs :call <SID>FzfBLines()<CR>
+nnoremap <leader>ft :command<CR>
+nnoremap <leader>fu :undolist<CR>
+nnoremap <leader>fw :call <SID>FzfGrepWord()<CR>
+
+" Git Search Keymaps (Lazygit & Shell Git Integration)
+nnoremap <leader>gb :echo system('git branch')<CR>
+nnoremap <leader>gs :echo system('git status -s')<CR>
+nnoremap <leader>gS :echo system('git stash list')<CR>
+nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
+nnoremap <C-g>      :silent !lazygit<CR>:redraw!<CR>
+
+
+" Vim Options & Help Inspections
+nnoremap <leader>oa :autocmd<CR>
+nnoremap <leader>oc :history :<CR>
+nnoremap <leader>oC :colorscheme <Tab>
+nnoremap <leader>od :help
+nnoremap <leader>of :marks<CR>
+nnoremap <leader>og :command<CR>
+nnoremap <leader>oh :highlight<CR>
+nnoremap <leader>oj :jumps<CR>
+nnoremap <leader>ok :map<CR>
+nnoremap <leader>om :Man
+nnoremap <leader>on :messages<CR>
+nnoremap <leader>oo :set<CR>
+nnoremap <leader>os :history /<CR>
+
+" Edit Config Files Mappings
+nnoremap <leader>eca :edit ~/.config/shell/aliases.sh<CR>
+nnoremap <leader>ecA :edit ~/.config/alacritty/alacritty.toml<CR>
+nnoremap <leader>ecb :edit ~/.bashrc<CR>
+nnoremap <leader>ece :edit ~/.config/shell/environment.sh<CR>
+nnoremap <leader>ecf :edit ~/.config/shell/functions.sh<CR>
+nnoremap <leader>ecg :call <SID>EditGitConfig()<CR>
+nnoremap <leader>eck :edit ~/.config/kitty/kitty.conf<CR>
+nnoremap <leader>ecl :edit ~/.config/shell/local.sh<CR>
+nnoremap <leader>ecn :edit ~/.config/nvim/init.lua<CR>
+nnoremap <leader>ecp :edit ~/.config/nvim/lua/plugins/list.lua<CR>
+nnoremap <leader>ecq :edit ~/.config/qutebrowser/config.py<CR>
+nnoremap <leader>ect :edit ~/.config/tmux/tmux.conf<CR>
+nnoremap <leader>ecv :edit $MYVIMRC<CR>
+nnoremap <leader>ecz :call <SID>EditZshConfig('.zshrc')<CR>
+nnoremap <leader>ecZ :call <SID>EditZshConfig('prompt/init.zsh')<CR>
 
 " Split Creation and Navigation
 nnoremap <leader>s\ <C-w>v
