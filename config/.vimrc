@@ -503,11 +503,11 @@ autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
 
 " Tone down cursor line, status bar, and tabline highlight colors globally
 autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
-autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
-autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
-autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
-autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
-autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=234 guibg=#1e1e2e
+autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=15 ctermbg=0 guifg=#cdd6f4 guibg=#000000
+autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
+autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
+autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
+autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
 
 " Load colorscheme with fallback to built-in 'slate'
 try
