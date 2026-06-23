@@ -6,7 +6,6 @@ set ignorecase     " Do case insensitive matching
 set incsearch      " Show partial matches for a search phrase
 set number         " Show numbers
 set relativenumber " Show relative numbers
-set nohlsearch     " clear highlights after search
 set tabstop=4      " Tab size
 set shiftwidth=4   " Indentation size
 set softtabstop=4  " Tabs/Spaces interop
@@ -414,7 +413,6 @@ nmap H :bprevious<CR>
 nmap L :bnext<CR>
 nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
 nmap <leader>s :setlocal spell!<CR>
-nmap <leader>S :nohlsearch<CR>
 nmap <leader>t :term<CR>
 nmap <leader>ww :w<CR>
 nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
@@ -559,7 +557,6 @@ nnoremap <leader>qw :wq<CR>
 nnoremap <leader>ea :b#<CR>
 nnoremap <leader>en :enew<CR>
 nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
-nnoremap <leader>fx :%bd\|e#\|bd#<CR>
 nnoremap <leader>qd :b#\|bd#<CR>
 
 " Drag Visual selections
