@@ -412,9 +412,6 @@ nnoremap <leader>fu :undolist<CR>
 nnoremap <leader>fw :call <SID>FzfGrepWord()<CR>
 
 " Git Search Keymaps (Lazygit & Shell Git Integration)
-nnoremap <leader>gb :echo system('git branch')<CR>
-nnoremap <leader>gs :echo system('git status -s')<CR>
-nnoremap <leader>gS :echo system('git stash list')<CR>
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
 
