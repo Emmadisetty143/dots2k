@@ -227,33 +227,13 @@ endfunction
 
 " Helper to get current mode for statusline
 function! StatuslineMode() abort
-    let l:m = mode()
-    let l:modes = {
-        \ 'n':      'N',
-        \ 'v':      'V',
-        \ 'V':      'VL',
-        \ "\<C-v>": 'VB',
-        \ 'i':      'I',
-        \ 'R':      'R',
-        \ 'c':      'C',
-        \ 't':      'T',
-        \ }
-    return get(l:modes, l:m, l:m)
+    return get({'n':'N','v':'V','V':'VL',"\<C-v>":'VB','i':'I','R':'R','c':'C','t':'T'}, mode(), mode())
 endfunction
 
 " Helper to get current file size for statusline
 function! StatuslineFileSize() abort
-    let l:bytes = getfsize(expand('%:p'))
-    if l:bytes <= 0
-        return ''
-    endif
-    if l:bytes < 1024
-        return l:bytes . 'B'
-    elseif l:bytes < 1048576
-        return printf('%.1fKiB', l:bytes / 1024.0)
-    else
-        return printf('%.1fMiB', l:bytes / 1048576.0)
-    endif
+    let l:b = getfsize(expand('%:p'))
+    return l:b <= 0 ? '' : l:b < 1024 ? l:b.'B' : l:b < 1048576 ? printf('%.1fKiB', l:b/1024.0) : printf('%.1fMiB', l:b/1048576.0)
 endfunction
 
 " Native Buffer Tabline at the top (replaces standard tabline)
@@ -339,16 +319,9 @@ command! -nargs=? Replace call s:Replace(<q-args>)
 
 " Copy text to clipboard (works on Wayland/X11 with native +clipboard, or WSL via win32yank)
 function! s:CopyToClipboard(text) abort
-    if executable('win32yank.exe')
-        let s:win32yank = 'win32yank.exe'
-    endif
-    if exists('s:win32yank')
-        call system(s:win32yank . ' -i', a:text)
-    elseif has('clipboard')
-        let @+ = a:text
-    else
-        let @" = a:text
-    endif
+    if executable('win32yank.exe') | call system('win32yank.exe -i', a:text)
+    elseif has('clipboard')        | let @+ = a:text
+    else                           | let @" = a:text | endif
 endfunction
 
 " Copy GitHub URL for the current line or visual selection
