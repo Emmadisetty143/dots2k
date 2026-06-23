@@ -1,13 +1,46 @@
-" Load files using fzf
-function! FZF() abort
-    let l:tempname = tempname()
-    execute 'silent !fzf --multi ' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
-    try
-        execute 'cfile ' . l:tempname
-        redraw!
-    finally
-        call delete(l:tempname)
-    endtry
+" FZF Floating Window Layout Configuration
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
+
+" Helper for buffer selection callback
+function! s:BufSelect(line) abort
+    let l:bufnr = split(a:line, ':')[0]
+    execute 'buffer ' . l:bufnr
+endfunction
+
+" Fuzzy search open buffers
+function! s:FzfBuffers() abort
+    let l:bufs = filter(range(1, bufnr('$')), 'buflisted(v:val)')
+    let l:lines = []
+    for l:buf in l:bufs
+        let l:name = bufname(l:buf)
+        let l:name = empty(l:name) ? '[No Name]' : l:name
+        let l:modified = getbufvar(l:buf, '&modified') ? ' *' : ''
+        call add(l:lines, printf('%d: %s%s', l:buf, l:name, l:modified))
+    endfor
+    call fzf#run(fzf#wrap({
+        \ 'source': l:lines,
+        \ 'sink': function('s:BufSelect'),
+        \ 'options': '--prompt="Buffers> "'
+        \ }))
+endfunction
+
+" Helper for Ripgrep selection callback
+function! s:GrepSelect(line) abort
+    let l:parts = split(a:line, ':')
+    if len(l:parts) >= 3
+        execute 'edit +' . l:parts[1] . ' ' . fnameescape(l:parts[0])
+        execute 'normal! ' . l:parts[2] . '|'
+    endif
+endfunction
+
+" Fuzzy search text using Ripgrep (opens match at exact line and column)
+function! s:FzfGrep() abort
+    let l:cmd = 'rg --column --line-number --no-heading --color=always --smart-case ""'
+    call fzf#run(fzf#wrap({
+        \ 'source': l:cmd,
+        \ 'sink': function('s:GrepSelect'),
+        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="Grep> "'
+        \ }))
 endfunction
 
 " Native Buffer Tabline at the top (replaces standard tabline)
@@ -155,7 +188,14 @@ nnoremap = <C-a>
 
 nmap Q :qa!<CR>
 nmap <leader>e :Lexplore<CR>
-nmap <leader>f :FZF<cr>
+
+" Fuzzy search maps matching pickme.nvim / Seeker
+nnoremap <leader><space> :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
+nnoremap <leader>fa :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
+nnoremap <leader>ff :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
+nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
+nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
+nnoremap <leader>fg :call <SID>FzfGrep()<CR>
 nmap <leader>qq :q<CR>
 nmap <leader>qa :qa<CR>
 nmap <leader>r :source ~/.vimrc<CR>
