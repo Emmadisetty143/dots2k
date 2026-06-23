@@ -448,6 +448,34 @@ vnoremap p "_dP
 vnoremap < <gv
 vnoremap > >gv
 
+" Drag Visual selections
+vnoremap K xkP`[V`]
+vnoremap J xp`[V`]
+vnoremap L >gv
+vnoremap H <gv
+
+" Insert blank lines above/below cursor without moving cursor
+nnoremap <silent> [<space> :<C-u>put! =repeat(nr2char(10), v:count1)<bar>']+1<CR>
+nnoremap <silent> ]<space> :<C-u>put =repeat(nr2char(10), v:count1)<bar>'[-1<CR>
+
+" Bracket navigation (Quickfix, Location list, Buffer, Jump list, and Windows)
+nnoremap <silent> [q :cprev<CR>
+nnoremap <silent> ]q :cnext<CR>
+nnoremap <silent> [Q :cfirst<CR>
+nnoremap <silent> ]Q :clast<CR>
+nnoremap <silent> [l :lprev<CR>
+nnoremap <silent> ]l :lnext<CR>
+nnoremap <silent> [L :lfirst<CR>
+nnoremap <silent> [L :llast<CR>
+nnoremap <silent> [b :bprevious<CR>
+nnoremap <silent> ]b :bnext<CR>
+nnoremap <silent> [B :bfirst<CR>
+nnoremap <silent> ]B :blast<CR>
+nnoremap <silent> [j <C-o>
+nnoremap <silent> ]j <C-i>
+nnoremap <silent> [w <C-w>p
+nnoremap <silent> ]w <C-w>w
+
 " Math increments (matches Neovim)
 nnoremap - <C-x>
 nnoremap = <C-a>
@@ -558,12 +586,6 @@ nnoremap <leader>ea :b#<CR>
 nnoremap <leader>en :enew<CR>
 nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
 nnoremap <leader>qd :b#\|bd#<CR>
-
-" Drag Visual selections
-vnoremap K xkP`[V`]
-vnoremap J xp`[V`]
-vnoremap L >gv
-vnoremap H <gv
 
 " tmux true color fix
 if (has("termguicolors"))
