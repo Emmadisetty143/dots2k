@@ -54,12 +54,6 @@ setlocal spell spelllang=en "Set spell check language to en
 setlocal spell! " Disable spellchecking by default
 syntax enable      " Turn on syntax highlighting
 
-let g:netrw_liststyle = 3
-let g:netrw_banner = 0  " Hide help banner to match nvim-tree
-let g:netrw_winsize = 25 " Match default Neovim explorer width
-let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
-let g:netrw_altv = 1         " Open vertical splits on the right
-let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
 
 " Auto-create parent directory if it does not exist
@@ -74,23 +68,17 @@ augroup GeneralAutocmds
     autocmd!
     " Go to last position when reopening a file
     autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-
     " Remove trailing whitespace on write
     autocmd BufWritePre * %s/\s\+$//e
-
     " Resize splits if window got resized
     autocmd VimResized * tabdo wincmd =
-
     " Wrap and check spell in text filetypes
     autocmd FileType gitcommit,markdown setlocal wrap spell
-
     " Disable formatoptions comment continuation on new lines
     autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
-
     " Auto-create directory when saving a file
     autocmd BufWritePre * call s:AutoCreateDir()
 augroup END
-
 
 " Highlight on yank (copy)
 function! s:HighlightYank() abort
@@ -267,17 +255,6 @@ function! StatuslineFileSize() abort
     endif
 endfunction
 
-
-" Seamless Vim/Tmux Split Navigation
-function! s:TmuxNavigate(direction) abort
-    let l:winnr = winnr()
-    execute 'wincmd ' . a:direction
-    if l:winnr == winnr() && exists('$TMUX')
-        let l:tmux_dir = {'h': 'L', 'j': 'D', 'k': 'U', 'l': 'R'}
-        call system('tmux select-pane -' . l:tmux_dir[a:direction])
-    endif
-endfunction
-
 " Native Buffer Tabline at the top (replaces standard tabline)
 function! BufferTabLine() abort
     let l:s = ''
@@ -311,16 +288,13 @@ function! s:CloseQuote(char) abort
     let l:col = col('.')
     let l:line = getline('.')
     let l:next_char = l:line[l:col - 1]
-
     if l:next_char == a:char
         return "\<Right>"
     endif
-
     " Special case for single quote: don't pair if preceded by a letter/number
     if a:char ==# "'" && l:col > 1 && l:line[l:col - 2] =~# '[a-zA-Z0-9]'
         return "'"
     endif
-
     return a:char . a:char . "\<Left>"
 endfunction
 
@@ -338,34 +312,51 @@ function! s:BackspacePair() abort
     return "\<BS>"
 endfunction
 
-" Set Netrw bindings
+" Seamless Vim/Tmux Split Navigation
+function! s:TmuxNavigate(direction) abort
+    let l:winnr = winnr()
+    execute 'wincmd ' . a:direction
+    if l:winnr == winnr() && exists('$TMUX')
+        let l:tmux_dir = {'h': 'L', 'j': 'D', 'k': 'U', 'l': 'R'}
+        call system('tmux select-pane -' . l:tmux_dir[a:direction])
+    endif
+endfunction
+
+" Netrw settings
+let g:netrw_liststyle = 3
+let g:netrw_banner = 0  " Hide help banner to match nvim-tree
+let g:netrw_winsize = 25 " Match default Neovim explorer width
+let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
+let g:netrw_altv = 1         " Open vertical splits on the right
+let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
+
 augroup NetrwCustom
     autocmd!
     autocmd FileType netrw call NetrwSettings()
 augroup END
 
 function! NetrwSettings() abort
-    " a: Add new file (Vim standard: %)
     nmap <buffer> a %
-    " A: Add new directory (Vim standard: d)
     nmap <buffer> A d
-    " r: Rename file or directory (Vim standard: R)
     nmap <buffer> r R
-    " d: Delete file or directory (Vim standard: D)
     nmap <buffer> d D
-    " H: Toggle hidden files (Vim standard: gh)
     nmap <buffer> H gh
-    " q: Toggle/close Lexplore sidebar cleanly
     nmap <buffer> q :Lexplore<CR>
-
-    " Navigation & Opening Files
-    " l: Toggle folder expand/collapse or open file (Vim standard: Enter)
     nmap <buffer> l <CR>
 endfunction
 
 " Keybindings
 let mapleader = ' '
 inoremap jj <Esc>
+nmap <leader>ee :Lexplore<CR>
+nmap H :bprevious<CR>
+nmap L :bnext<CR>
+nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
+nmap <leader>s :setlocal spell!<CR>
+nmap <leader>S :nohlsearch<CR>
+nmap <leader>t :term<CR>
+nmap <leader>ww :w<CR>
+nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
 
 " auto-close pairs
 inoremap ( ()<Left>
@@ -402,9 +393,6 @@ vnoremap > >gv
 nnoremap - <C-x>
 nnoremap = <C-a>
 
-nmap Q :qa!<CR>
-nmap <leader>ee :Lexplore<CR>
-
 " Fuzzy search maps matching pickme.nvim / Seeker
 nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
 nnoremap <leader>/  :history /<CR>
@@ -428,7 +416,7 @@ nnoremap <leader>gb :echo system('git branch')<CR>
 nnoremap <leader>gs :echo system('git status -s')<CR>
 nnoremap <leader>gS :echo system('git stash list')<CR>
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
-nnoremap <C-g>      :silent !lazygit<CR>:redraw!<CR>
+nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
 
 " Vim Options & Help Inspections
 nnoremap <leader>oa :autocmd<CR>
@@ -496,6 +484,7 @@ nnoremap <leader>sK :resize +5<CR>
 nnoremap <leader>sL :vertical resize +10<CR>
 
 " Buffer Control & Quit Operations
+nmap Q :qa!<CR>
 nnoremap <leader>x  :x<CR>
 nnoremap <leader>qa :qall<CR>
 nnoremap <leader>qb :bw<CR>
@@ -508,16 +497,6 @@ nnoremap <leader>en :enew<CR>
 nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
 nnoremap <leader>fx :%bd\|e#\|bd#<CR>
 nnoremap <leader>qd :b#\|bd#<CR>
-
-" Other UI & Utility Mappings
-nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
-nmap <leader>s :setlocal spell!<CR>
-nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
-nmap <leader>S :nohlsearch<CR>
-nmap <leader>t :term<CR>
-nmap <leader>ww :w<CR>
-nmap H :bprevious<CR>
-nmap L :bnext<CR>
 
 " Drag Visual selections
 vnoremap K xkP`[V`]
