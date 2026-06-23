@@ -1,4 +1,5 @@
 set nocompatible   " Disable vi compatibility
+set noloadplugins  " Disable automatic loading of all plugins on startup
 set encoding=utf-8 " Use UTF-8
 set showmatch      " Show matching brackets
 set ignorecase     " Do case insensitive matching
@@ -429,7 +430,6 @@ nnoremap <leader>gS :echo system('git stash list')<CR>
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 nnoremap <C-g>      :silent !lazygit<CR>:redraw!<CR>
 
-
 " Vim Options & Help Inspections
 nnoremap <leader>oa :autocmd<CR>
 nnoremap <leader>oc :history :<CR>
@@ -560,3 +560,12 @@ try
 catch /^Vim\%((\a\+)\)\=:E185/
     colorscheme slate
 endtry
+
+" Manually load required plugins since noloadplugins is set
+silent! runtime plugin/matchparen.vim  " Highlight matching parentheses
+silent! packadd! matchit               " Extended % matching for HTML tags, etc.
+silent! runtime plugin/spellfile.vim   " Auto-download missing spellfiles
+silent! runtime ftplugin/man.vim       " Enable :Man command to view man pages
+silent! runtime plugin/logiPat.vim     " Boolean logical search patterns (:LogiPat)
+silent! runtime plugin/fzf.vim         " Fuzzy finder integration
+silent! packadd netrw                  " File explorer
