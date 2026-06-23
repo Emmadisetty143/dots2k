@@ -142,6 +142,16 @@ function! s:FzfGrep() abort
         \ }))
 endfunction
 
+" Seamless Vim/Tmux Split Navigation
+function! s:TmuxNavigate(direction) abort
+    let l:winnr = winnr()
+    execute 'wincmd ' . a:direction
+    if l:winnr == winnr() && exists('$TMUX')
+        let l:tmux_dir = {'h': 'L', 'j': 'D', 'k': 'U', 'l': 'R'}
+        call system('tmux select-pane -' . l:tmux_dir[a:direction])
+    endif
+endfunction
+
 " Native Buffer Tabline at the top (replaces standard tabline)
 function! BufferTabLine() abort
     let l:s = ''
@@ -276,20 +286,62 @@ nnoremap <leader>ff :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
 nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
 nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
 nnoremap <leader>fg :call <SID>FzfGrep()<CR>
-nmap <leader>qq :q<CR>
-nmap <leader>qa :qa<CR>
+
+" Split Creation and Navigation
+nnoremap <leader>s\ <C-w>v
+nnoremap <leader>s/ <C-w>s
+nnoremap <leader>sa :split<CR>
+nnoremap <leader>ss :vsplit<CR>
+nnoremap <leader>sh <C-w>h
+nnoremap <leader>sj <C-w>j
+nnoremap <leader>sk <C-w>k
+nnoremap <leader>sl <C-w>l
+nnoremap <leader>s` <C-w>p
+nnoremap <leader>sc :tabclose<CR>
+nnoremap <leader>sf :tabfirst<CR>
+
+" Seamless Vim/Tmux Navigation
+nnoremap <silent> <C-h> :call <SID>TmuxNavigate('h')<CR>
+nnoremap <silent> <C-j> :call <SID>TmuxNavigate('j')<CR>
+nnoremap <silent> <C-k> :call <SID>TmuxNavigate('k')<CR>
+nnoremap <silent> <C-l> :call <SID>TmuxNavigate('l')<CR>
+
+" Split Window Resizing
+nnoremap <C-Up> :resize +10<CR>
+nnoremap <C-Down> :resize -10<CR>
+nnoremap <C-Left> :vertical resize -10<CR>
+nnoremap <C-Right> :vertical resize +10<CR>
+nnoremap <leader>s+ :resize +10<CR>
+nnoremap <leader>s- :vertical resize -20<CR>
+nnoremap <leader>s= :vertical resize +20<CR>
+nnoremap <leader>s_ :resize -10<CR>
+nnoremap <leader>sH :vertical resize -10<CR>
+nnoremap <leader>sJ :resize -5<CR>
+nnoremap <leader>sK :resize +5<CR>
+nnoremap <leader>sL :vertical resize +10<CR>
+
+" Buffer Control & Quit Operations
+nnoremap <leader>x  :x<CR>
+nnoremap <leader>qa :qall<CR>
+nnoremap <leader>qb :bw<CR>
+nnoremap <leader>qf :qall!<CR>
+nnoremap <leader>qq :q<CR>
+nnoremap <leader>qs <C-w>c
+nnoremap <leader>qw :wq<CR>
+nnoremap <leader>ea :b#<CR>
+nnoremap <leader>en :enew<CR>
+nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
+nnoremap <leader>fx :%bd\|e#\|bd#<CR>
+nnoremap <leader>qd :b#\|bd#<CR>
+
+" Other UI & Utility Mappings
 nmap <leader>r :source ~/.vimrc<CR>
 nmap <leader>s :setlocal spell!<CR>
 nmap <leader>S :nohlsearch<CR>
 nmap <leader>t :term<CR>
 nmap <leader>ww :w<CR>
-nmap <leader>x :wq<CR>
 nmap H :bprevious<CR>
 nmap L :bnext<CR>
-nmap <C-h> <C-w>h
-nmap <C-l> <C-w>l
-nmap <C-j> <C-w>j
-nmap <C-k> <C-w>k
 
 " Drag Visual selections
 vnoremap K xkP`[V`]
