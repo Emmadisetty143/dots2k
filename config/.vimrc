@@ -76,9 +76,6 @@ augroup GeneralAutocmds
     autocmd BufWritePre * %s/\s\+$//e
     " Close help, quickfix, and man buffers with 'q'
     autocmd FileType help,qf,man nnoremap <buffer><silent> q :close<CR>
-    " Automatically check and reload files modified outside of Vim
-    autocmd FocusGained * if mode() !~ '\v(c|t)' | silent! checktime | endif
-    autocmd BufEnter * if &buftype == '' && filereadable(expand('%')) && mode() !~ '\v(c|t)' | silent! checktime % | endif
     " Resize splits if window got resized
     autocmd VimResized * tabdo wincmd =
     " Wrap and check spell in text filetypes
@@ -194,36 +191,6 @@ function! s:FzfHistory() abort
         \ 'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'),
         \ 'options': '--prompt="History> "'
         \ }))
-endfunction
-
-" Shared helper for buffer line searching
-function! s:FzfLinesHelper(bufs, prompt) abort
-    let l:lines = []
-    for l:buf in a:bufs
-        let l:bufname = bufname(l:buf)
-        let l:bufname = empty(l:bufname) ? '[No Name]' : l:bufname
-        let l:content = getbufline(l:buf, 1, '$')
-        let l:idx = 1
-        for l:line in l:content
-            call add(l:lines, printf('%s:%d:%s', l:bufname, l:idx, l:line))
-            let l:idx += 1
-        endfor
-    endfor
-    call fzf#run(fzf#wrap({
-        \ 'source': l:lines,
-        \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="' . a:prompt . '> "'
-        \ }))
-endfunction
-
-" Fuzzy search lines in all open buffers
-function! s:FzfLines() abort
-    call s:FzfLinesHelper(filter(range(1, bufnr('$')), 'buflisted(v:val) && bufloaded(v:val)'), 'Lines')
-endfunction
-
-" Fuzzy search lines in current buffer
-function! s:FzfBLines() abort
-    call s:FzfLinesHelper([bufnr('%')], 'BLines')
 endfunction
 
 " Helper to get current mode for statusline
@@ -436,7 +403,6 @@ inoremap jj <Esc>
 nnoremap <leader>ee :Lexplore<CR>
 nnoremap H :bprevious<CR>
 nnoremap L :bnext<CR>
-nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
 nnoremap <leader>s :setlocal spell!<CR>
 nnoremap <leader>t :term<CR>
 nnoremap <leader>ww :w<CR>
@@ -488,48 +454,25 @@ vnoremap J xp`[V`]
 vnoremap L >gv
 vnoremap H <gv
 
-" Insert blank lines above/below cursor without moving cursor
-nnoremap <silent> [<space> :<C-u>put! =repeat(nr2char(10), v:count1)<bar>']+1<CR>
-nnoremap <silent> ]<space> :<C-u>put =repeat(nr2char(10), v:count1)<bar>'[-1<CR>
-
 " Bracket navigation (Quickfix, Location list, Buffer, Jump list, and Windows)
-nnoremap <silent> [q :cprev<CR>
-nnoremap <silent> ]q :cnext<CR>
-nnoremap <silent> [Q :cfirst<CR>
-nnoremap <silent> ]Q :clast<CR>
-nnoremap <silent> [l :lprev<CR>
-nnoremap <silent> ]l :lnext<CR>
-nnoremap <silent> [L :lfirst<CR>
-nnoremap <silent> ]L :llast<CR>
-nnoremap <silent> [b :bprevious<CR>
-nnoremap <silent> ]b :bnext<CR>
-nnoremap <silent> [B :bfirst<CR>
-nnoremap <silent> ]B :blast<CR>
 nnoremap <silent> [j <C-o>
 nnoremap <silent> ]j <C-i>
-nnoremap <silent> [w <C-w>p
-nnoremap <silent> ]w <C-w>w
+nnoremap <silent> [l :lprev<CR>
+nnoremap <silent> ]l :lnext<CR>
+nnoremap <silent> ]q :cnext<CR>
+nnoremap <silent> [q :cprev<CR>
 
 " Math increments (matches Neovim)
 nnoremap - <C-x>
 nnoremap = <C-a>
 
 " Fuzzy search maps matching pickme.nvim / Seeker
-nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
-nnoremap <leader>/  :history /<CR>
-nnoremap <leader>:  :history :<CR>
 nnoremap <leader><space> :FZF<CR>
 nnoremap <leader>fa :call <SID>FzfAllFiles()<CR>
 nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
 nnoremap <leader>ff :call <SID>FzfGitFiles()<CR>
 nnoremap <leader>fg :call <SID>FzfGrep()<CR>
-nnoremap <leader>fl :lopen<CR>
-nnoremap <leader>fo :call <SID>FzfLines()<CR>
-nnoremap <leader>fq :copen<CR>
 nnoremap <leader>fr :call <SID>FzfHistory()<CR>
-nnoremap <leader>fs :call <SID>FzfBLines()<CR>
-nnoremap <leader>ft :command<CR>
-nnoremap <leader>fu :undolist<CR>
 nnoremap <leader>fw :call <SID>FzfGrepWord()<CR>
 
 " Replace / substitution helper mappings
@@ -538,49 +481,42 @@ nnoremap <leader>rb :%s///gc<Left><Left><Left><Left>
 nnoremap <leader>rs :%s/\<<C-r><C-w>\>/\<C-r>\<C-w>/gI<Left><Left><Left>
 nnoremap <leader>rw :Replace <C-r><C-w><CR>
 
+" Sort / text processing mappings
+vnoremap <leader>ci :sort i<CR>
+vnoremap <leader>cS :sort!<CR>
+vnoremap <leader>cs :sort<CR>
+vnoremap <leader>cu :!uniq<CR>
+
+" Insertion helper mappings
+nnoremap <leader>id :put =strftime('## %a, %d %b, %Y, %r')<CR>
+nnoremap <leader>if :put =expand('%:t')<CR>
+nnoremap <leader>iP :put %:p<CR>
+nnoremap <leader>ip :put %<CR>
+nnoremap <leader>it :put =strftime('## %r')<CR>
+
 " Git Search Keymaps (Lazygit & Shell Git Integration)
-nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
-nnoremap <silent> <leader>yL :call <SID>CopyToClipboard(expand('%:p') . ':' . line('.'))<CR>
-nnoremap <silent> <leader>yP :call <SID>CopyToClipboard(expand('%:p'))<CR>
-nnoremap <silent> <leader>ya :%y+<CR>
-nnoremap <silent> <leader>yf :call <SID>CopyToClipboard(expand('%:t'))<CR>
-nnoremap <silent> <leader>yg :CopyGitUrl<CR>
-vnoremap <silent> <leader>yg :CopyGitUrl<CR>
-nnoremap <silent> <leader>yl :call <SID>CopyToClipboard(expand('%') . ':' . line('.'))<CR>
-nnoremap <silent> <leader>yp :call <SID>CopyToClipboard(expand('%'))<CR>
+nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 
-" Vim Options & Help Inspections
-nnoremap <leader>oa :autocmd<CR>
-nnoremap <leader>oc :history :<CR>
-nnoremap <leader>oC :colorscheme <Tab>
-nnoremap <leader>od :help
-nnoremap <leader>of :marks<CR>
-nnoremap <leader>og :command<CR>
-nnoremap <leader>oh :highlight<CR>
-nnoremap <leader>oj :jumps<CR>
-nnoremap <leader>ok :map<CR>
-nnoremap <leader>om :Man
-nnoremap <leader>on :messages<CR>
-nnoremap <leader>oo :set<CR>
-nnoremap <leader>os :history /<CR>
-
-" Edit Config Files Mappings
-nnoremap <leader>eca :call fzf#run(fzf#wrap({'dir': expand('~/.config'), 'options': '--prompt="Config> "'}))<CR>
-nnoremap <leader>ecc :edit $MYVIMRC<CR>
+" Edit Files
+nnoremap <leader>ea :b#<CR>
+nnoremap <leader>ec :call fzf#run(fzf#wrap({'dir': expand('~/.config'), 'options': '--prompt="Config> "'}))<CR>
+nnoremap <leader>en :enew<CR>
+nnoremap <leader>er :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
+nnoremap <leader>ev :edit $MYVIMRC<CR>
 
 " Split Creation and Navigation
-nnoremap <leader>s\ <C-w>v
-nnoremap <leader>s/ <C-w>s
-nnoremap <leader>sa :split<CR>
-nnoremap <leader>ss :vsplit<CR>
-nnoremap <leader>sh <C-w>h
-nnoremap <leader>sj <C-w>j
-nnoremap <leader>sk <C-w>k
-nnoremap <leader>sl <C-w>l
 nnoremap <leader>s` <C-w>p
-nnoremap <leader>sc :tabclose<CR>
-nnoremap <leader>sf :tabfirst<CR>
+nnoremap <leader>sa :split<CR>
+nnoremap <leader>sH :vertical resize -10<CR>
+nnoremap <leader>sh <C-w>h
+nnoremap <leader>sJ :resize -10<CR>
+nnoremap <leader>sj <C-w>j
+nnoremap <leader>sK :resize +10<CR>
+nnoremap <leader>sk <C-w>k
+nnoremap <leader>sL :vertical resize +10<CR>
+nnoremap <leader>sl <C-w>l
+nnoremap <leader>ss :vsplit<CR>
 
 " Seamless Vim/Tmux Navigation
 nnoremap <silent> <C-h> :call <SID>TmuxNavigate('h')<CR>
@@ -588,25 +524,24 @@ nnoremap <silent> <C-j> :call <SID>TmuxNavigate('j')<CR>
 nnoremap <silent> <C-k> :call <SID>TmuxNavigate('k')<CR>
 nnoremap <silent> <C-l> :call <SID>TmuxNavigate('l')<CR>
 
-" Split Window Resizing
-nnoremap <leader>sH :vertical resize -10<CR>
-nnoremap <leader>sJ :resize -10<CR>
-nnoremap <leader>sK :resize +10<CR>
-nnoremap <leader>sL :vertical resize +10<CR>
-
 " Buffer Control & Quit Operations
-nnoremap Q :qa!<CR>
-nnoremap <leader>x  :x<CR>
 nnoremap <leader>qa :qall<CR>
-nnoremap <leader>qb :bw<CR>
-nnoremap <leader>qf :qall!<CR>
+nnoremap <leader>qd :b#\|bd#<CR>
+nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
 nnoremap <leader>qq :q<CR>
 nnoremap <leader>qs <C-w>c
-nnoremap <leader>qw :wq<CR>
-nnoremap <leader>ea :b#<CR>
-nnoremap <leader>en :enew<CR>
-nnoremap <leader>qo :%bdelete\|b#\|bdelete#<CR>
-nnoremap <leader>qd :b#\|bd#<CR>
+nnoremap <leader>x  :x<CR>
+nnoremap Q :qa!<CR>
+
+" Yank bindings
+nnoremap <silent> <leader>ya :%y+<CR>
+nnoremap <silent> <leader>yf :call <SID>CopyToClipboard(expand('%:t'))<CR>
+nnoremap <silent> <leader>yg :CopyGitUrl<CR>
+nnoremap <silent> <leader>yl :call <SID>CopyToClipboard(expand('%') . ':' . line('.'))<CR>
+nnoremap <silent> <leader>yL :call <SID>CopyToClipboard(expand('%:p') . ':' . line('.'))<CR>
+nnoremap <silent> <leader>yp :call <SID>CopyToClipboard(expand('%'))<CR>
+nnoremap <silent> <leader>yP :call <SID>CopyToClipboard(expand('%:p'))<CR>
+vnoremap <silent> <leader>yg :CopyGitUrl<CR>
 
 " tmux true color fix
 if (has("termguicolors"))
