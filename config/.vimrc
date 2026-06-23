@@ -27,6 +27,11 @@ set laststatus=2   " Always show status line
 set scrolloff=8    " Scroll offset
 set sidescrolloff=5
 set autoread       " Reload files on change
+set smartcase      " Case-sensitive search if capital letter is typed
+set confirm        " Ask to save changes on exiting modified buffer
+set breakindent    " Wrapped lines preserve indentation
+set whichwrap+=<,>,h,l,[,] " Allow keys to wrap lines
+set iskeyword+=-   " Treat dash-separated words as a single word
 set tabpagemax=50  " More tabs
 set history=1000   " More history
 set viminfo^=!     " Better viminfo
