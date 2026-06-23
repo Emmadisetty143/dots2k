@@ -235,21 +235,6 @@ function! s:FzfGrepWord() abort
         \ }))
 endfunction
 
-" Safe wrapper to edit Zsh config files resolving $ZDOTDIR dynamically
-function! s:EditZshConfig(file) abort
-    let l:zdotdir = empty($ZDOTDIR) ? $HOME : $ZDOTDIR
-    execute 'edit ' . fnameescape(l:zdotdir . '/' . a:file)
-endfunction
-
-" Safe wrapper to edit Git config files, checking common paths
-function! s:EditGitConfig() abort
-    if filereadable(expand('~/.config/git/config'))
-        edit ~/.config/git/config
-    else
-        edit ~/.gitconfig
-    endif
-endfunction
-
 " Seamless Vim/Tmux Split Navigation
 function! s:TmuxNavigate(direction) abort
     let l:winnr = winnr()
@@ -434,7 +419,7 @@ nnoremap <leader>ecA :edit ~/.config/alacritty/alacritty.toml<CR>
 nnoremap <leader>ecb :edit ~/.bashrc<CR>
 nnoremap <leader>ece :edit ~/.config/shell/environment.sh<CR>
 nnoremap <leader>ecf :edit ~/.config/shell/functions.sh<CR>
-nnoremap <leader>ecg :call <SID>EditGitConfig()<CR>
+nnoremap <leader>ecg :edit ~/.config/git/config<CR>
 nnoremap <leader>eck :edit ~/.config/kitty/kitty.conf<CR>
 nnoremap <leader>ecl :edit ~/.config/shell/local.sh<CR>
 nnoremap <leader>ecn :edit ~/.config/nvim/init.lua<CR>
@@ -442,8 +427,8 @@ nnoremap <leader>ecp :edit ~/.config/nvim/lua/plugins/list.lua<CR>
 nnoremap <leader>ecq :edit ~/.config/qutebrowser/config.py<CR>
 nnoremap <leader>ect :edit ~/.config/tmux/tmux.conf<CR>
 nnoremap <leader>ecv :edit $MYVIMRC<CR>
-nnoremap <leader>ecz :call <SID>EditZshConfig('.zshrc')<CR>
-nnoremap <leader>ecZ :call <SID>EditZshConfig('prompt/init.zsh')<CR>
+nnoremap <leader>ecz :edit $ZDOTDIR/.zshrc<CR>
+nnoremap <leader>ecZ :edit $ZDOTDIR/prompt/init.zsh<CR>
 
 " Split Creation and Navigation
 nnoremap <leader>s\ <C-w>v
