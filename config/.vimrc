@@ -47,7 +47,7 @@ set undodir=$HOME/.local/state/vim/undo " Enable undo dir
 set undofile       " Enable persistent undos across files
 set tabline=%!BufferTabLine()
 set showtabline=2 " Always show the buffer list at the top
-set clipboard+=unnamedplus " Copy Paste from System Clipboard
+set clipboard=unnamedplus " Copy Paste from System Clipboard
 set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
 setlocal spell spelllang=en "Set spell check language to en
 setlocal spell! " Disable spellchecking by default
@@ -91,23 +91,6 @@ augroup HighlightYank
     autocmd!
     autocmd TextYankPost * call s:HighlightYank()
 augroup END
-
-" cross platform clipboard support
-if has('wsl')
-    if executable('win32yank.exe')
-        let s:win32yank = 'win32yank.exe'
-    elseif executable('win32yank')
-        let s:win32yank = 'win32yank'
-    endif
-endif
-
-if exists('s:win32yank')
-    exec 'vmap <Leader>yy :w !' . s:win32yank . ' -i --crlf<CR><CR>'
-    exec 'map <Leader>pp mz:-1r !' . s:win32yank . ' -o --lf<CR>`z'
-else
-    vmap <Leader>yy "+y
-    map <Leader>pp mz:put! +<CR>`z
-endif
 
 " Helper for buffer selection callback
 function! s:BufSelect(line) abort
@@ -335,6 +318,60 @@ endfunction
 
 command! -nargs=? Replace call s:Replace(<q-args>)
 
+" Copy text to clipboard (works on Wayland/X11 with native +clipboard, or WSL via win32yank)
+function! s:CopyToClipboard(text) abort
+    if executable('win32yank.exe')
+        let s:win32yank = 'win32yank.exe'
+    endif
+    if exists('s:win32yank')
+        call system(s:win32yank . ' -i', a:text)
+    elseif has('clipboard')
+        let @+ = a:text
+    else
+        let @" = a:text
+    endif
+endfunction
+
+" Copy GitHub URL for the current line or visual selection
+function! s:CopyGitUrl(line1, line2) abort
+    let l:relative_file = expand('%:.')
+    if empty(l:relative_file) | return | endif
+
+    let l:repo_url = system('git config --get remote.origin.url')
+    let l:repo_url = substitute(l:repo_url, '\n$', '', '')
+    let l:repo_url = substitute(l:repo_url, '\.git$', '', '')
+    if empty(l:repo_url)
+        echohl WarningMsg | echo 'Not a git repository' | echohl None
+        return
+    endif
+
+    " Convert SSH git@github.com:user/repo to HTTPS URL (GitHub only)
+    let l:repo_url = substitute(l:repo_url, 'git@github\.com:', 'https://github.com/', '')
+    let l:repo_url = substitute(l:repo_url, 'ssh://git@github\.com/', 'https://github.com/', '')
+
+    let l:branch = system('git branch --show-current')
+    let l:branch = substitute(l:branch, '\n$', '', '')
+    if empty(l:branch)
+        let l:branch = system('git rev-parse --short HEAD')
+        let l:branch = substitute(l:branch, '\n$', '', '')
+    endif
+
+    let l:url = printf('%s/blob/%s/%s#L%d', l:repo_url, l:branch, l:relative_file, a:line1)
+    if a:line1 != a:line2
+        let l:url = printf('%s-L%d', l:url, a:line2)
+    endif
+
+    call s:CopyToClipboard(l:url)
+    echo 'Copied Git URL to clipboard: ' . l:url
+endfunction
+
+command! -range CopyGitUrl call s:CopyGitUrl(<line1>, <line2>)
+command! CopyRelativePath call s:CopyToClipboard(expand('%'))
+command! CopyAbsolutePath call s:CopyToClipboard(expand('%:p'))
+command! CopyRelativePathWithLine call s:CopyToClipboard(expand('%') . ':' . line('.'))
+command! CopyAbsolutePathWithLine call s:CopyToClipboard(expand('%:p') . ':' . line('.'))
+command! CopyFileName call s:CopyToClipboard(expand('%:t'))
+
 " Lightweight Autopairs
 function! s:ClosePair(char) abort
     if getline('.')[col('.') - 1] == a:char
@@ -507,6 +544,14 @@ nnoremap <leader>rw :Replace <C-r><C-w><CR>
 " Git Search Keymaps (Lazygit & Shell Git Integration)
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
+nnoremap <silent> <leader>yL :CopyAbsolutePathWithLine<CR>
+nnoremap <silent> <leader>yP :CopyAbsolutePath<CR>
+nnoremap <silent> <leader>ya :%y+<CR>
+nnoremap <silent> <leader>yf :CopyFileName<CR>
+nnoremap <silent> <leader>yg :CopyGitUrl<CR>
+vnoremap <silent> <leader>yg :CopyGitUrl<CR>
+nnoremap <silent> <leader>yl :CopyRelativePathWithLine<CR>
+nnoremap <silent> <leader>yp :CopyRelativePath<CR>
 
 " Vim Options & Help Inspections
 nnoremap <leader>oa :autocmd<CR>
