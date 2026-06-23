@@ -1,5 +1,104 @@
-" FZF Floating Window Layout Configuration
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
+set nocompatible   " Disable vi compatibility
+set encoding=utf-8 " Use UTF-8
+set showmatch      " Show matching brackets
+set ignorecase     " Do case insensitive matching
+set incsearch      " Show partial matches for a search phrase
+set number         " Show numbers
+set relativenumber " Show relative numbers
+set nohlsearch     " clear highlights after search
+set tabstop=4      " Tab size
+set shiftwidth=4   " Indentation size
+set softtabstop=4  " Tabs/Spaces interop
+set expandtab      " Expands tab to spaces
+set nomodeline     " Disable as a security precaution
+set mouse=a        " Enable mouse mode
+set hlsearch       " Enable search highlight
+set wildmenu       " Enable wildmenu
+set path+=**       " Search recursively with :find
+set splitbelow     " Natural splits
+set splitright
+set autoindent     " Enable autoindent
+set complete-=i    " Better completion
+set smarttab       " Better tabs
+set ttimeout       " Set timeout
+set ttimeoutlen=100
+set synmaxcol=500  " Syntax limit
+set laststatus=2   " Always show status line
+set ruler          " Show cursor position
+set scrolloff=8    " Scroll offset
+set sidescrolloff=5
+set autoread       " Reload files on change
+set tabpagemax=50  " More tabs
+set history=1000   " More history
+set viminfo^=!     " Better viminfo
+set backspace=indent,eol,start " Delete everything
+set formatoptions+=j " Delete comment character when joining
+set listchars=tab:,nbsp:_,trail:,extends:>,precedes:<
+set list           " Highlight non whitespace characters
+set nrformats-=octal " 007 != 010
+set sessionoptions-=options
+set viewoptions-=option
+set cursorline     " Highlight current line
+set exrc           " Use vimrc from local dir
+set secure         " Disable shell/write commands in local vimrc
+set hidden         " Enable switching with modified buffers
+set undolevels=999 " Lots of these
+set undodir=$HOME/.local/state/vim/undo " Enable undo dir
+set undofile       " Enable persistent undos across files
+set tabline=%!BufferTabLine()
+set showtabline=2 " Always show the buffer list at the top
+set clipboard+=unnamedplus " Copy Paste from System Clipboard
+setlocal spell spelllang=en "Set spell check language to en
+setlocal spell! " Disable spellchecking by default
+syntax enable      " Turn on syntax highlighting
+
+let g:netrw_liststyle = 3
+let g:netrw_banner = 0  " Hide help banner to match nvim-tree
+let g:netrw_winsize = 25 " Match default Neovim explorer width
+let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
+let g:netrw_altv = 1         " Open vertical splits on the right
+let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
+
+" Have Vim jump to the last position when reopening a file
+if has("autocmd")
+    au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\""
+endif
+
+" Remove trailing whitespace on write
+if has("autocmd")
+    autocmd BufWritePre * %s/\s\+$//e
+endif
+
+" Highlight on yank (copy)
+function! s:HighlightYank() abort
+    if v:event.operator ==# 'y' && exists('*matchaddpos')
+        let l:m = matchaddpos('Visual', range(line("'["), line("']")))
+        call timer_start(150, {-> execute('silent! call matchdelete(' . l:m . ')')})
+    endif
+endfunction
+
+augroup HighlightYank
+    autocmd!
+    autocmd TextYankPost * call s:HighlightYank()
+augroup END
+
+" cross platform clipboard support
+if has('wsl')
+    if executable('win32yank.exe')
+        let s:win32yank = 'win32yank.exe'
+    elseif executable('win32yank')
+        let s:win32yank = 'win32yank'
+    endif
+endif
+
+if exists('s:win32yank')
+    exec 'vmap <Leader>yy :w !' . s:win32yank . ' -i --crlf<CR><CR>'
+    exec 'map <Leader>pp mz:-1r !' . s:win32yank . ' -o --lf<CR>`z'
+else
+    vmap <Leader>yy "+y
+    map <Leader>pp mz:put! +<CR>`z
+endif
 
 " Helper for buffer selection callback
 function! s:BufSelect(line) abort
@@ -63,76 +162,51 @@ function! BufferTabLine() abort
     return l:s
 endfunction
 
-set nocompatible   " Disable vi compatibility
-set encoding=utf-8 " Use UTF-8
-set showmatch      " Show matching brackets
-set ignorecase     " Do case insensitive matching
-set incsearch      " Show partial matches for a search phrase
-set number         " Show numbers
-set relativenumber " Show relative numbers
-set nohlsearch     " clear highlights after search
-set tabstop=4      " Tab size
-set shiftwidth=4   " Indentation size
-set softtabstop=4  " Tabs/Spaces interop
-set expandtab      " Expands tab to spaces
-set nomodeline     " Disable as a security precaution
-set mouse=a        " Enable mouse mode
-set hlsearch       " Enable search highlight
-set wildmenu       " Enable wildmenu
-set path+=**       " Search recursively with :find
-set splitbelow     " Natural splits
-set splitright
-set autoindent     " Enable autoindent
-set complete-=i    " Better completion
-set smarttab       " Better tabs
-set ttimeout       " Set timeout
-set ttimeoutlen=100
-set synmaxcol=500  " Syntax limit
-set laststatus=2   " Always show status line
-set ruler          " Show cursor position
-set scrolloff=8    " Scroll offset
-set sidescrolloff=5
-set autoread       " Reload files on change
-set tabpagemax=50  " More tabs
-set history=1000   " More history
-set viminfo^=!     " Better viminfo
-set backspace=indent,eol,start " Delete everything
-set formatoptions+=j " Delete comment character when joining
-set listchars=tab:,nbsp:_,trail:,extends:>,precedes:<
-set list           " Highlight non whitespace characters
-set nrformats-=octal " 007 != 010
-set sessionoptions-=options
-set viewoptions-=option
-set cursorline     " Highlight current line
-set exrc           " Use vimrc from local dir
-set secure         " Disable shell/write commands in local vimrc
-set hidden         " Enable switching with modified buffers
-set undolevels=999 " Lots of these
-set undodir=$HOME/.local/state/vim/undo " Enable undo dir
-set undofile       " Enable persistent undos across files
-set tabline=%!BufferTabLine()
-set showtabline=2 " Always show the buffer list at the top
-set clipboard+=unnamedplus " Copy Paste from System Clipboard
-setlocal spell spelllang=en "Set spell check language to en
-setlocal spell! " Disable spellchecking by default
-syntax enable      " Turn on syntax highlighting
+" Lightweight Autopairs
+function! s:ClosePair(char) abort
+    if getline('.')[col('.') - 1] == a:char
+        return "\<Right>"
+    else
+        return a:char
+    endif
+endfunction
 
-" Have Vim jump to the last position when reopening a file
-if has("autocmd")
-    au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\""
-endif
+function! s:CloseQuote(char) abort
+    let l:col = col('.')
+    let l:line = getline('.')
+    let l:next_char = l:line[l:col - 1]
 
-" Remove trailing whitespace on write
-if has("autocmd")
-    autocmd BufWritePre * %s/\s\+$//e
-endif
+    if l:next_char == a:char
+        return "\<Right>"
+    endif
 
-let g:netrw_liststyle = 3
-let g:netrw_banner = 0  " Hide help banner to match nvim-tree
-let g:netrw_winsize = 25 " Match default Neovim explorer width
-let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
-let g:netrw_altv = 1         " Open vertical splits on the right
-let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
+    " Special case for single quote: don't pair if preceded by a letter/number
+    if a:char ==# "'" && l:col > 1 && l:line[l:col - 2] =~# '[a-zA-Z0-9]'
+        return "'"
+    endif
+
+    return a:char . a:char . "\<Left>"
+endfunction
+
+function! s:BackspacePair() abort
+    let l:col = col('.')
+    let l:line = getline('.')
+    if l:col > 1
+        let l:prev_char = l:line[l:col - 2]
+        let l:next_char = l:line[l:col - 1]
+        let l:pairs = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`'}
+        if has_key(l:pairs, l:prev_char) && l:pairs[l:prev_char] == l:next_char
+            return "\<BS>\<Delete>"
+        endif
+    endif
+    return "\<BS>"
+endfunction
+
+" Set Netrw bindings
+augroup NetrwCustom
+    autocmd!
+    autocmd FileType netrw call NetrwSettings()
+augroup END
 
 function! NetrwSettings() abort
     " a: Add new file (Vim standard: %)
@@ -153,15 +227,21 @@ function! NetrwSettings() abort
     nmap <buffer> l <CR>
 endfunction
 
-augroup NetrwCustom
-    autocmd!
-    autocmd FileType netrw call NetrwSettings()
-augroup END
-
-
 " Keybindings
 let mapleader = ' '
 inoremap jj <Esc>
+
+" auto-close pairs
+inoremap ( ()<Left>
+inoremap [ []<Left>
+inoremap { {}<Left>
+inoremap <expr> ) <SID>ClosePair(')')
+inoremap <expr> ] <SID>ClosePair(']')
+inoremap <expr> } <SID>ClosePair('}')
+inoremap <expr> " <SID>CloseQuote('"')
+inoremap <expr> ' <SID>CloseQuote("'")
+inoremap <expr> ` <SID>CloseQuote('`')
+inoremap <expr> <BS> <SID>BackspacePair()
 
 " Centered search result scrolling
 nnoremap <C-d> <C-d>zz
@@ -211,23 +291,6 @@ nmap <C-l> <C-w>l
 nmap <C-j> <C-w>j
 nmap <C-k> <C-w>k
 
-
-if has('wsl')
-    if executable('win32yank.exe')
-        let s:win32yank = 'win32yank.exe'
-    elseif executable('win32yank')
-        let s:win32yank = 'win32yank'
-    endif
-endif
-
-if exists('s:win32yank')
-    exec 'vmap <Leader>yy :w !' . s:win32yank . ' -i --crlf<CR><CR>'
-    exec 'map <Leader>pp mz:-1r !' . s:win32yank . ' -o --lf<CR>`z'
-else
-    vmap <Leader>yy "+y
-    map <Leader>pp mz:put! +<CR>`z
-endif
-
 " Drag Visual selections
 vnoremap K xkP`[V`]
 vnoremap J xp`[V`]
@@ -250,19 +313,6 @@ autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=238 ctermbg=234 
 autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=245 ctermbg=235 guifg=#a6adc8 guibg=#252535
 autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=238 ctermbg=234 guifg=#585b70 guibg=#1e1e2e
 autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=234 guibg=#1e1e2e
-
-" Highlight on yank (copy)
-function! s:HighlightYank() abort
-    if v:event.operator ==# 'y' && exists('*matchaddpos')
-        let l:m = matchaddpos('Visual', range(line("'["), line("']")))
-        call timer_start(150, {-> execute('silent! call matchdelete(' . l:m . ')')})
-    endif
-endfunction
-
-augroup HighlightYank
-    autocmd!
-    autocmd TextYankPost * call s:HighlightYank()
-augroup END
 
 " Load colorscheme with fallback to built-in 'slate'
 try
