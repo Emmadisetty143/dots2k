@@ -358,11 +358,6 @@ function! s:CopyGitUrl(line1, line2) abort
 endfunction
 
 command! -range CopyGitUrl call s:CopyGitUrl(<line1>, <line2>)
-command! CopyRelativePath call s:CopyToClipboard(expand('%'))
-command! CopyAbsolutePath call s:CopyToClipboard(expand('%:p'))
-command! CopyRelativePathWithLine call s:CopyToClipboard(expand('%') . ':' . line('.'))
-command! CopyAbsolutePathWithLine call s:CopyToClipboard(expand('%:p') . ':' . line('.'))
-command! CopyFileName call s:CopyToClipboard(expand('%:t'))
 
 " Lightweight Autopairs
 function! s:ClosePair(char) abort
@@ -545,14 +540,14 @@ nnoremap <leader>rw :Replace <C-r><C-w><CR>
 " Git Search Keymaps (Lazygit & Shell Git Integration)
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
 nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
-nnoremap <silent> <leader>yL :CopyAbsolutePathWithLine<CR>
-nnoremap <silent> <leader>yP :CopyAbsolutePath<CR>
+nnoremap <silent> <leader>yL :call <SID>CopyToClipboard(expand('%:p') . ':' . line('.'))<CR>
+nnoremap <silent> <leader>yP :call <SID>CopyToClipboard(expand('%:p'))<CR>
 nnoremap <silent> <leader>ya :%y+<CR>
-nnoremap <silent> <leader>yf :CopyFileName<CR>
+nnoremap <silent> <leader>yf :call <SID>CopyToClipboard(expand('%:t'))<CR>
 nnoremap <silent> <leader>yg :CopyGitUrl<CR>
 vnoremap <silent> <leader>yg :CopyGitUrl<CR>
-nnoremap <silent> <leader>yl :CopyRelativePathWithLine<CR>
-nnoremap <silent> <leader>yp :CopyRelativePath<CR>
+nnoremap <silent> <leader>yl :call <SID>CopyToClipboard(expand('%') . ':' . line('.'))<CR>
+nnoremap <silent> <leader>yp :call <SID>CopyToClipboard(expand('%'))<CR>
 
 " Vim Options & Help Inspections
 nnoremap <leader>oa :autocmd<CR>
@@ -570,21 +565,8 @@ nnoremap <leader>oo :set<CR>
 nnoremap <leader>os :history /<CR>
 
 " Edit Config Files Mappings
-nnoremap <leader>eca :edit ~/.config/shell/aliases.sh<CR>
-nnoremap <leader>ecA :edit ~/.config/alacritty/alacritty.toml<CR>
-nnoremap <leader>ecb :edit ~/.bashrc<CR>
-nnoremap <leader>ece :edit ~/.config/shell/environment.sh<CR>
-nnoremap <leader>ecf :edit ~/.config/shell/functions.sh<CR>
-nnoremap <leader>ecg :edit ~/.config/git/config<CR>
-nnoremap <leader>eck :edit ~/.config/kitty/kitty.conf<CR>
-nnoremap <leader>ecl :edit ~/.config/shell/local.sh<CR>
-nnoremap <leader>ecn :edit ~/.config/nvim/init.lua<CR>
-nnoremap <leader>ecp :edit ~/.config/nvim/lua/plugins/list.lua<CR>
-nnoremap <leader>ecq :edit ~/.config/qutebrowser/config.py<CR>
-nnoremap <leader>ect :edit ~/.config/tmux/tmux.conf<CR>
-nnoremap <leader>ecv :edit $MYVIMRC<CR>
-nnoremap <leader>ecz :edit $ZDOTDIR/.zshrc<CR>
-nnoremap <leader>ecZ :edit $ZDOTDIR/prompt/init.zsh<CR>
+nnoremap <leader>eca :call fzf#run(fzf#wrap({'dir': expand('~/.config'), 'options': '--prompt="Config> "'}))<CR>
+nnoremap <leader>ecc :edit $MYVIMRC<CR>
 
 " Split Creation and Navigation
 nnoremap <leader>s\ <C-w>v
@@ -606,17 +588,9 @@ nnoremap <silent> <C-k> :call <SID>TmuxNavigate('k')<CR>
 nnoremap <silent> <C-l> :call <SID>TmuxNavigate('l')<CR>
 
 " Split Window Resizing
-nnoremap <C-Up> :resize +10<CR>
-nnoremap <C-Down> :resize -10<CR>
-nnoremap <C-Left> :vertical resize -10<CR>
-nnoremap <C-Right> :vertical resize +10<CR>
-nnoremap <leader>s+ :resize +10<CR>
-nnoremap <leader>s- :vertical resize -20<CR>
-nnoremap <leader>s= :vertical resize +20<CR>
-nnoremap <leader>s_ :resize -10<CR>
 nnoremap <leader>sH :vertical resize -10<CR>
-nnoremap <leader>sJ :resize -5<CR>
-nnoremap <leader>sK :resize +5<CR>
+nnoremap <leader>sJ :resize -10<CR>
+nnoremap <leader>sK :resize +10<CR>
 nnoremap <leader>sL :vertical resize +10<CR>
 
 " Buffer Control & Quit Operations
