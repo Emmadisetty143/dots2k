@@ -2,7 +2,7 @@ set nocompatible   " Disable vi compatibility
 set noloadplugins  " Disable automatic loading of all plugins on startup
 set encoding=utf-8 " Use UTF-8
 set showmatch      " Show matching brackets
-set ignorecase     " Do case insensitive matching
+set ignorecase     " Case insensitive matching
 set incsearch      " Show partial matches for a search phrase
 set number         " Show numbers
 set relativenumber " Show relative numbers
@@ -10,10 +10,9 @@ set tabstop=4      " Tab size
 set shiftwidth=4   " Indentation size
 set softtabstop=4  " Tabs/Spaces interop
 set expandtab      " Expands tab to spaces
-set nomodeline     " Disable as a security precaution
+set nomodeline     " Disable modeline as a security precaution
 set mouse=a        " Enable mouse mode
 set hlsearch       " Enable search highlight
-set wildmenu       " Enable wildmenu
 set path+=**       " Search recursively with :find
 set splitbelow     " Natural splits
 set splitright
@@ -35,36 +34,32 @@ set iskeyword+=-   " Treat dash-separated words as a single word
 set tabpagemax=50  " More tabs
 set history=1000   " More history
 set viminfo^=!     " Better viminfo
-set backspace=indent,eol,start " Delete everything
 set formatoptions+=j " Delete comment character when joining
 set listchars=tab:,nbsp:_,trail:,extends:>,precedes:<
 set list           " Highlight non whitespace characters
 set fillchars=eob:\  " Clean trailing tildes
 set nrformats-=octal " 007 != 010
 set sessionoptions-=options
-set viewoptions-=option
+set viewoptions-=options
 set cursorline     " Highlight current line
 set exrc           " Use vimrc from local dir
 set secure         " Disable shell/write commands in local vimrc
 set hidden         " Enable switching with modified buffers
-set undolevels=999 " Lots of these
 set undodir=$HOME/.local/state/vim/undo " Enable undo dir
 set undofile       " Enable persistent undos across files
 set tabline=%!BufferTabLine()
-set showtabline=2 " Always show the buffer list at the top
+set showtabline=2  " Always show the buffer list at the top
 set clipboard=unnamedplus " Copy Paste from System Clipboard
 set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
-set spelllang=en " Set spell check language to en (disabled by default)
 set background=dark " Use dark background
 syntax enable      " Turn on syntax highlighting
-
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout
 
 " Auto-create parent directory if it does not exist
 function! s:AutoCreateDir() abort
-    let l:dir = expand('<afile>:p:h')
-    if !isdirectory(l:dir)
-        call mkdir(l:dir, 'p')
+    let l:d = expand('<afile>:p:h')
+    if !isdirectory(l:d)
+        call mkdir(l:d, 'p')
     endif
 endfunction
 
@@ -72,8 +67,8 @@ augroup GeneralAutocmds
     autocmd!
     " Go to last position when reopening a file
     autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-    " Remove trailing whitespace on write
-    autocmd BufWritePre * %s/\s\+$//e
+    " Remove trailing whitespace and auto-create directory on write
+    autocmd BufWritePre * %s/\s\+$//e | call s:AutoCreateDir()
     " Close help, quickfix, and man buffers with 'q'
     autocmd FileType help,qf,man nnoremap <buffer><silent> q :close<CR>
     " Resize splits if window got resized
@@ -82,15 +77,13 @@ augroup GeneralAutocmds
     autocmd FileType gitcommit,markdown setlocal wrap spell
     " Disable formatoptions comment continuation on new lines
     autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
-    " Auto-create directory when saving a file
-    autocmd BufWritePre * call s:AutoCreateDir()
 augroup END
 
 " Highlight on yank (copy)
 function! s:HighlightYank() abort
     if v:event.operator ==# 'y' && exists('*matchaddpos')
-        let l:m = matchaddpos('Visual', range(line("'["), line("']")))
-        call timer_start(150, {-> execute('silent! call matchdelete(' . l:m . ')')})
+        let l:id = matchaddpos('Visual', range(line("'["), line("']")))
+        call timer_start(150, {-> execute('silent! call matchdelete(' . l:id . ')')})
     endif
 endfunction
 
@@ -99,98 +92,53 @@ augroup HighlightYank
     autocmd TextYankPost * call s:HighlightYank()
 augroup END
 
-" Helper for buffer selection callback
-function! s:BufSelect(line) abort
-    let l:bufnr = split(a:line, ':')[0]
-    execute 'buffer ' . l:bufnr
-endfunction
-
 " Fuzzy search open buffers
 function! s:FzfBuffers() abort
     let l:bufs = filter(range(1, bufnr('$')), 'buflisted(v:val)')
-    let l:lines = []
-    for l:buf in l:bufs
-        let l:name = bufname(l:buf)
-        let l:name = empty(l:name) ? '[No Name]' : l:name
-        let l:modified = getbufvar(l:buf, '&modified') ? ' *' : ''
-        call add(l:lines, printf('%d: %s%s', l:buf, l:name, l:modified))
-    endfor
+    let l:lines = map(l:bufs, {_, b -> printf('%d: %s%s', b,
+        \ empty(bufname(b)) ? '[No Name]' : bufname(b),
+        \ getbufvar(b, '&modified') ? ' *' : '')})
     call fzf#run(fzf#wrap({
         \ 'source': l:lines,
-        \ 'sink': function('s:BufSelect'),
+        \ 'sink': {line -> execute('buffer ' . split(line, ':')[0])},
         \ 'options': '--prompt="Buffers> "'
         \ }))
 endfunction
 
-" Helper for Ripgrep selection callback (safe parsing for colons and drives)
-function! s:GrepSelect(line) abort
-    let l:match = matchlist(a:line, '^\(.\{-}\):\(\d\+\):\(\d\+\):\(.*\)$')
-    if !empty(l:match)
-        let l:file = l:match[1]
-        let l:lnum = l:match[2]
-        let l:col = l:match[3]
-    else
-        let l:match = matchlist(a:line, '^\(.\{-}\):\(\d\+\):\(.*\)$')
-        if !empty(l:match)
-            let l:file = l:match[1]
-            let l:lnum = l:match[2]
-            let l:col = 1
-        else
-            return
-        endif
+" Fuzzy search text using Ripgrep
+function! s:FzfGrep(w, is_word) abort
+    if a:is_word && empty(a:w)
+        return
     endif
-    execute 'edit +' . l:lnum . ' ' . fnameescape(l:file)
-    execute 'normal! ' . l:col . '|'
-endfunction
-
-" Unified Ripgrep search command flags
-let s:rg_base = 'rg --column --line-number --no-heading --color=always --smart-case --hidden --glob "!.git/*"'
-
-" Fuzzy search text using Ripgrep (including hidden files, excluding .git)
-function! s:FzfGrep() abort
+    let l:rg_base = 'rg --column --line-number --no-heading --color=always --smart-case --hidden --glob "!.git/*"'
+    let l:query = empty(a:w) ? ' ""' : ' ' . shellescape(a:w)
+    let l:prompt = empty(a:w) ? 'Grep> ' : 'GrepWord: ' . a:w . '> '
+    let l:sink = {line -> execute([
+        \ 'let l:m = matchlist(line, ''^\(.\{-}\):\(\d\+\)\%(:\(\d\+\)\)\?:'')',
+        \ 'if !empty(l:m)',
+        \ '  execute "edit +" . l:m[2] . " " . fnameescape(l:m[1])',
+        \ '  execute "normal! " . (empty(l:m[3]) ? 1 : l:m[3]) . "|"',
+        \ 'endif'
+        \ ])}
     call fzf#run(fzf#wrap({
-        \ 'source': s:rg_base . ' ""',
-        \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="Grep> "'
-        \ }))
-endfunction
-
-" Fuzzy search word under cursor
-function! s:FzfGrepWord() abort
-    let l:word = expand('<cword>')
-    if empty(l:word) | return | endif
-    call fzf#run(fzf#wrap({
-        \ 'source': s:rg_base . ' ' . shellescape(l:word),
-        \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="GrepWord: ' . l:word . '> "'
-        \ }))
-endfunction
-
-" Fuzzy search all files in project directory
-function! s:FzfAllFiles() abort
-    call fzf#run(fzf#wrap({
-        \ 'options': '--prompt="Files> "'
+        \ 'source': l:rg_base . l:query,
+        \ 'sink': l:sink,
+        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="' . l:prompt . '"'
         \ }))
 endfunction
 
 " Fuzzy search git files (using git ls-files)
 function! s:FzfGitFiles() abort
     if isdirectory('.git') || system('git rev-parse --is-inside-work-tree') =~# 'true'
-        call fzf#run(fzf#wrap({
-            \ 'source': 'git ls-files --exclude-standard --cached --others',
-            \ 'options': '--prompt="GitFiles> "'
-            \ }))
+        call fzf#run(fzf#wrap({'source': 'git ls-files --exclude-standard --cached --others', 'options': '--prompt="GitFiles> "'}))
     else
-        call s:FzfAllFiles()
+        call fzf#run(fzf#wrap({'options': '--prompt="Files> "'}))
     endif
 endfunction
 
 " Fuzzy search old files history
 function! s:FzfHistory() abort
-    call fzf#run(fzf#wrap({
-        \ 'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'),
-        \ 'options': '--prompt="History> "'
-        \ }))
+    call fzf#run(fzf#wrap({'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'), 'options': '--prompt="History> "'}))
 endfunction
 
 " Helper to get current mode for statusline
@@ -207,118 +155,80 @@ endfunction
 " Native Buffer Tabline at the top (replaces standard tabline)
 function! BufferTabLine() abort
     let l:s = ''
+    let l:cur = bufnr('%')
     let l:bufs = filter(range(1, bufnr('$')), 'buflisted(v:val)')
-    let l:current = bufnr('%')
-    for l:buf in l:bufs
-        if l:buf == l:current
-            let l:s .= '%#TabLineSel#'
-        else
-            let l:s .= '%#TabLine#'
-        endif
-        let l:name = bufname(l:buf)
-        let l:name = empty(l:name) ? '[No Name]' : fnamemodify(l:name, ':t')
-        let l:modified = getbufvar(l:buf, '&modified') ? '*' : ''
-        let l:s .= ' ' . l:buf . ' ' . l:name . l:modified . ' '
+    for l:b in l:bufs
+        let l:s .= (l:b == l:cur) ? '%#TabLineSel#' : '%#TabLine#'
+        let l:name = empty(bufname(l:b)) ? '[No Name]' : fnamemodify(bufname(l:b), ':t')
+        let l:mod = getbufvar(l:b, '&modified') ? '*' : ''
+        let l:s .= ' ' . l:b . ' ' . l:name . l:mod . ' '
     endfor
-    let l:s .= '%#TabLineFill#%T'
-    return l:s
+    return l:s . '%#TabLineFill#%T'
 endfunction
 
 " Project-wide search and replace via Ripgrep and Quickfix
-function! s:GetDelimiter(find, replace) abort
-    let l:delimiters = ['/', '#', '@', '_', '~', ';']
-    for l:d in l:delimiters
-        if stridx(a:find, l:d) == -1 && stridx(a:replace, l:d) == -1
-            return l:d
-        endif
-    endfor
-    return '/'
-endfunction
-
 function! s:Replace(query) abort
-    let l:find = a:query
-    if empty(l:find)
-        let l:find = input('Find: ')
-    endif
+    let l:find = empty(a:query) ? input('Find: ') : a:query
     if empty(l:find)
         return
     endif
-
     let l:replace = input('Replace with: ')
-
-    " Populate quickfix list using Ripgrep
-    let l:grep_cmd = 'rg --vimgrep --smart-case ' . shellescape(l:find)
-    let l:output = system(l:grep_cmd)
+    let l:output = system('rg --vimgrep --smart-case ' . shellescape(l:find))
     if v:shell_error != 0 || empty(l:output)
         echohl WarningMsg | echo 'No matches found for: ' . l:find | echohl None
         return
     endif
-
-    " Load results into quickfix
-    let l:lines = split(l:output, "\n")
-    call setqflist([], 'r', {'title': 'Search: ' . l:find, 'lines': l:lines})
-
+    call setqflist([], 'r', {'title': 'Search: ' . l:find, 'lines': split(l:output, "\n")})
     let l:original_buf = bufnr('%')
     copen
-
-    " Pick a safe delimiter for the substitution command
-    let l:d = s:GetDelimiter(l:find, l:replace)
-
-    " Prompt user for confirmation mode
     let l:choice = confirm('Replace all occurrences?', "&Yes\n&Confirm each\n&Cancel", 1)
     if l:choice == 1
-        " Replace all instantly across all files and update
-        let l:cmd = 'cfdo %s' . l:d . l:find . l:d . l:replace . l:d . 'g | update'
         try
-            execute l:cmd
+            execute 'cfdo %s/' . escape(l:find, '/') . '/' . escape(l:replace, '/') . '/g | update'
             execute 'buffer ' . l:original_buf
             echo 'Replaced all occurrences of "' . l:find . '" with "' . l:replace . '"'
         catch
             echohl ErrorMsg | echo 'Replacement failed: ' . v:exception | echohl None
         endtry
     elseif l:choice == 2
-        " Pre-populate the command line for manual step-by-step confirmation
-        let l:replace_cmd = 'cfdo %s' . l:d . l:find . l:d . l:replace . l:d . 'gc | update'
-        call feedkeys(':' . l:replace_cmd, 'n')
+        call feedkeys(':cfdo %s/' . escape(l:find, '/') . '/' . escape(l:replace, '/') . '/gc | update', 'n')
     endif
 endfunction
-
 command! -nargs=? Replace call s:Replace(<q-args>)
 
 " Copy text to clipboard (works on Wayland/X11 with native +clipboard, or WSL via win32yank)
 function! s:CopyToClipboard(text) abort
-    if executable('win32yank.exe') | call system('win32yank.exe -i', a:text)
-    elseif has('clipboard')        | let @+ = a:text
-    else                           | let @" = a:text | endif
+    if executable('win32yank.exe')
+        call system('win32yank.exe -i', a:text)
+    elseif has('clipboard')
+        let @+ = a:text
+    else
+        let @" = a:text
+    endif
 endfunction
 
 " Copy GitHub URL for the current line or visual selection
 function! s:CopyGitUrl(line1, line2) abort
-    let l:relative_file = expand('%:.')
-    if empty(l:relative_file) | return | endif
-
-    let l:repo_url = system('git config --get remote.origin.url')
-    let l:repo_url = substitute(l:repo_url, '\n$', '', '')
-    let l:repo_url = substitute(l:repo_url, '\.git$', '', '')
-    if empty(l:repo_url)
+    let l:f = expand('%:.')
+    if empty(l:f)
+        return
+    endif
+    let l:u = trim(system('git config --get remote.origin.url'))
+    let l:u = substitute(l:u, '\.git$', '', '')
+    if empty(l:u)
         echohl WarningMsg | echo 'Not a git repository' | echohl None
         return
     endif
-
     " Convert SSH git@github.com:user/repo to HTTPS URL (GitHub only)
-    let l:repo_url = substitute(l:repo_url, 'git@github\.com:', 'https://github.com/', '')
-    let l:repo_url = substitute(l:repo_url, 'ssh://git@github\.com/', 'https://github.com/', '')
+    let l:u = substitute(l:u, 'git@github\.com:', 'https://github.com/', '')
+    let l:u = substitute(l:u, 'ssh://git@github\.com/', 'https://github.com/', '')
 
-    let l:branch = system('git branch --show-current')
-    let l:branch = substitute(l:branch, '\n$', '', '')
-    if empty(l:branch)
-        let l:branch = system('git rev-parse --short HEAD')
-        let l:branch = substitute(l:branch, '\n$', '', '')
-    endif
+    let l:b = trim(system('git branch --show-current'))
+    let l:b = empty(l:b) ? trim(system('git rev-parse --short HEAD')) : l:b
 
-    let l:url = printf('%s/blob/%s/%s#L%d', l:repo_url, l:branch, l:relative_file, a:line1)
+    let l:url = printf('%s/blob/%s/%s#L%d', l:u, l:b, l:f, a:line1)
     if a:line1 != a:line2
-        let l:url = printf('%s-L%d', l:url, a:line2)
+        let l:url .= '-L' . a:line2
     endif
 
     call s:CopyToClipboard(l:url)
@@ -328,36 +238,31 @@ endfunction
 command! -range CopyGitUrl call s:CopyGitUrl(<line1>, <line2>)
 
 " Lightweight Autopairs
-function! s:ClosePair(char) abort
-    if getline('.')[col('.') - 1] == a:char
-        return "\<Right>"
-    else
-        return a:char
-    endif
+function! s:ClosePair(c) abort
+    return getline('.')[col('.') - 1] == a:c ? "\<Right>" : a:c
 endfunction
 
-function! s:CloseQuote(char) abort
+function! s:CloseQuote(c) abort
     let l:col = col('.')
     let l:line = getline('.')
-    let l:next_char = l:line[l:col - 1]
-    if l:next_char == a:char
+    if l:line[l:col - 1] == a:c
         return "\<Right>"
     endif
     " Special case for single quote: don't pair if preceded by a letter/number
-    if a:char ==# "'" && l:col > 1 && l:line[l:col - 2] =~# '[a-zA-Z0-9]'
+    if a:c ==# "'" && l:col > 1 && l:line[l:col - 2] =~# '[a-zA-Z0-9]'
         return "'"
     endif
-    return a:char . a:char . "\<Left>"
+    return a:c . a:c . "\<Left>"
 endfunction
 
 function! s:BackspacePair() abort
     let l:col = col('.')
     let l:line = getline('.')
     if l:col > 1
-        let l:prev_char = l:line[l:col - 2]
-        let l:next_char = l:line[l:col - 1]
+        let l:prev = l:line[l:col - 2]
+        let l:next = l:line[l:col - 1]
         let l:pairs = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`'}
-        if has_key(l:pairs, l:prev_char) && l:pairs[l:prev_char] == l:next_char
+        if get(l:pairs, l:prev, '') == l:next
             return "\<BS>\<Delete>"
         endif
     endif
@@ -365,12 +270,11 @@ function! s:BackspacePair() abort
 endfunction
 
 " Seamless Vim/Tmux Split Navigation
-function! s:TmuxNavigate(direction) abort
-    let l:winnr = winnr()
-    execute 'wincmd ' . a:direction
-    if l:winnr == winnr() && exists('$TMUX')
-        let l:tmux_dir = {'h': 'L', 'j': 'D', 'k': 'U', 'l': 'R'}
-        call system('tmux select-pane -' . l:tmux_dir[a:direction])
+function! s:TmuxNavigate(dir) abort
+    let l:w = winnr()
+    execute 'wincmd ' . a:dir
+    if l:w == winnr() && exists('$TMUX')
+        call system('tmux select-pane -' . get({'h':'L','j':'D','k':'U','l':'R'}, a:dir))
     endif
 endfunction
 
@@ -388,13 +292,13 @@ augroup NetrwCustom
 augroup END
 
 function! NetrwSettings() abort
-    nnoremap <buffer> a %
-    nnoremap <buffer> A d
-    nnoremap <buffer> r R
-    nnoremap <buffer> d D
-    nnoremap <buffer> H gh
-    nnoremap <buffer> q :Lexplore<CR>
-    nnoremap <buffer> l <CR>
+    nmap <buffer> a %
+    nmap <buffer> A d
+    nmap <buffer> r R
+    nmap <buffer> d D
+    nmap <buffer> H gh
+    nmap <buffer> q :Lexplore<CR>
+    nmap <buffer> l <CR>
 endfunction
 
 " Keybindings
@@ -408,7 +312,7 @@ nnoremap <leader>t :term<CR>
 nnoremap <leader>ww :w<CR>
 nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
 
-" auto-close pairs
+" Autopair keybindings
 inoremap ( ()<Left>
 inoremap [ []<Left>
 inoremap { {}<Left>
@@ -468,12 +372,12 @@ nnoremap = <C-a>
 
 " Fuzzy search maps matching pickme.nvim / Seeker
 nnoremap <leader><space> :FZF<CR>
-nnoremap <leader>fa :call <SID>FzfAllFiles()<CR>
+nnoremap <leader>fa :call fzf#run(fzf#wrap({'options': '--prompt="Files> "'}))<CR>
 nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
 nnoremap <leader>ff :call <SID>FzfGitFiles()<CR>
-nnoremap <leader>fg :call <SID>FzfGrep()<CR>
+nnoremap <leader>fg :call <SID>FzfGrep('', 0)<CR>
 nnoremap <leader>fr :call <SID>FzfHistory()<CR>
-nnoremap <leader>fw :call <SID>FzfGrepWord()<CR>
+nnoremap <leader>fw :call <SID>FzfGrep(expand('<cword>'), 1)<CR>
 
 " Replace / substitution helper mappings
 nnoremap <leader>ra :Replace<CR>
@@ -544,33 +448,25 @@ nnoremap <silent> <leader>yP :call <SID>CopyToClipboard(expand('%:p'))<CR>
 vnoremap <silent> <leader>yg :CopyGitUrl<CR>
 
 " tmux true color fix
-if (has("termguicolors"))
-    set termguicolors
-endif
+if has("termguicolors") | set termguicolors | endif
 
 augroup ColorOverrides
     autocmd!
-    " Always use terminal background
     autocmd ColorScheme * highlight! Normal ctermbg=NONE guibg=NONE
-    autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
-
-    " Tone down cursor line, status bar, and tabline highlight colors globally
-    autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
-    autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=14 ctermbg=0 guifg=#89b4fa guibg=#000000
-    autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
-    autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
-    autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
-    autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
-    autocmd ColorScheme * highlight MsgArea ctermfg=15 guifg=#ffffff
+        \ | highlight! Terminal ctermbg=NONE guibg=NONE
+        \ | highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
+        \ | highlight StatusLine cterm=NONE ctermfg=14 ctermbg=0 guifg=#89b4fa guibg=#000000
+        \ | highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
+        \ | highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
+        \ | highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
+        \ | highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
+        \ | highlight MsgArea ctermfg=15 guifg=#ffffff
 augroup END
 
 augroup StatuslineColors
     autocmd!
-    autocmd ModeChanged *:i highlight StatusLine ctermfg=10 guifg=#a6e3a1
-    autocmd ModeChanged *:R highlight StatusLine ctermfg=10 guifg=#a6e3a1
-    autocmd ModeChanged *:v highlight StatusLine ctermfg=3 guifg=#f9e2af
-    autocmd ModeChanged *:V highlight StatusLine ctermfg=3 guifg=#f9e2af
-    execute "autocmd ModeChanged *:\<C-v> highlight StatusLine ctermfg=3 guifg=#f9e2af"
+    autocmd ModeChanged *:i,*:R highlight StatusLine ctermfg=10 guifg=#a6e3a1
+    execute "autocmd ModeChanged *:\<C-v>,*:v,*:V highlight StatusLine ctermfg=3 guifg=#f9e2af"
     autocmd ModeChanged *:t highlight StatusLine ctermfg=9 guifg=#f38ba8
     autocmd ModeChanged *:n highlight StatusLine ctermfg=14 guifg=#89b4fa
 augroup END
