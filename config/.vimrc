@@ -510,8 +510,9 @@ nnoremap <leader>fx :%bd\|e#\|bd#<CR>
 nnoremap <leader>qd :b#\|bd#<CR>
 
 " Other UI & Utility Mappings
-nmap <leader>r :source ~/.vimrc<CR>
+nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
 nmap <leader>s :setlocal spell!<CR>
+nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
 nmap <leader>S :nohlsearch<CR>
 nmap <leader>t :term<CR>
 nmap <leader>ww :w<CR>
@@ -544,16 +545,12 @@ autocmd ColorScheme * highlight MsgArea ctermfg=15 guifg=#ffffff
 
 augroup StatuslineColors
     autocmd!
-    " Green for Insert and Replace modes
     autocmd ModeChanged *:i highlight StatusLine ctermfg=10 guifg=#a6e3a1
     autocmd ModeChanged *:R highlight StatusLine ctermfg=10 guifg=#a6e3a1
-    " Yellow for Visual modes (char, line, block)
     autocmd ModeChanged *:v highlight StatusLine ctermfg=3 guifg=#f9e2af
     autocmd ModeChanged *:V highlight StatusLine ctermfg=3 guifg=#f9e2af
     execute "autocmd ModeChanged *:\<C-v> highlight StatusLine ctermfg=3 guifg=#f9e2af"
-    " Red for Terminal mode
     autocmd ModeChanged *:t highlight StatusLine ctermfg=9 guifg=#f38ba8
-    " Default blue for Normal mode
     autocmd ModeChanged *:n highlight StatusLine ctermfg=14 guifg=#89b4fa
 augroup END
 
