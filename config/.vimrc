@@ -125,22 +125,54 @@ function! s:FzfBuffers() abort
         \ }))
 endfunction
 
-" Helper for Ripgrep selection callback
+" Helper for Ripgrep selection callback (safe parsing for colons and drives)
 function! s:GrepSelect(line) abort
-    let l:parts = split(a:line, ':')
-    if len(l:parts) >= 3
-        execute 'edit +' . l:parts[1] . ' ' . fnameescape(l:parts[0])
-        execute 'normal! ' . l:parts[2] . '|'
+    let l:match = matchlist(a:line, '^\(.\{-}\):\(\d\+\):\(\d\+\):\(.*\)$')
+    if !empty(l:match)
+        let l:file = l:match[1]
+        let l:lnum = l:match[2]
+        let l:col = l:match[3]
+    else
+        let l:match = matchlist(a:line, '^\(.\{-}\):\(\d\+\):\(.*\)$')
+        if !empty(l:match)
+            let l:file = l:match[1]
+            let l:lnum = l:match[2]
+            let l:col = 1
+        else
+            return
+        endif
     endif
+    execute 'edit +' . l:lnum . ' ' . fnameescape(l:file)
+    execute 'normal! ' . l:col . '|'
 endfunction
 
-" Fuzzy search text using Ripgrep (opens match at exact line and column)
+" Unified Ripgrep search command flags
+let s:rg_base = 'rg --column --line-number --no-heading --color=always --smart-case --hidden --glob "!.git/*"'
+
+" Fuzzy search text using Ripgrep (including hidden files, excluding .git)
 function! s:FzfGrep() abort
-    let l:cmd = 'rg --column --line-number --no-heading --color=always --smart-case ""'
     call fzf#run(fzf#wrap({
-        \ 'source': l:cmd,
+        \ 'source': s:rg_base . ' ""',
         \ 'sink': function('s:GrepSelect'),
         \ 'options': '--ansi --delimiter : --nth 4.. --prompt="Grep> "'
+        \ }))
+endfunction
+
+" Fuzzy search word under cursor
+function! s:FzfGrepWord() abort
+    let l:word = expand('<cword>')
+    if empty(l:word) | return | endif
+    call fzf#run(fzf#wrap({
+        \ 'source': s:rg_base . ' ' . shellescape(l:word),
+        \ 'sink': function('s:GrepSelect'),
+        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="GrepWord: ' . l:word . '> "'
+        \ }))
+endfunction
+
+" Fuzzy search all files in project directory
+function! s:FzfAllFiles() abort
+    call fzf#run(fzf#wrap({
+        \ 'options': '--prompt="Files> "'
         \ }))
 endfunction
 
@@ -149,11 +181,10 @@ function! s:FzfGitFiles() abort
     if isdirectory('.git') || system('git rev-parse --is-inside-work-tree') =~# 'true'
         call fzf#run(fzf#wrap({
             \ 'source': 'git ls-files --exclude-standard --cached --others',
-            \ 'sink': 'edit',
-            \ 'options': '--multi --prompt="GitFiles> "'
+            \ 'options': '--prompt="GitFiles> "'
             \ }))
     else
-        echo 'Not in a git repository'
+        call s:FzfAllFiles()
     endif
 endfunction
 
@@ -161,15 +192,14 @@ endfunction
 function! s:FzfHistory() abort
     call fzf#run(fzf#wrap({
         \ 'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'),
-        \ 'sink': 'edit',
         \ 'options': '--prompt="History> "'
         \ }))
 endfunction
 
-" Fuzzy search lines in all open buffers
-function! s:FzfLines() abort
+" Shared helper for buffer line searching
+function! s:FzfLinesHelper(bufs, prompt) abort
     let l:lines = []
-    for l:buf in filter(range(1, bufnr('$')), 'buflisted(v:val) && bufloaded(v:val)')
+    for l:buf in a:bufs
         let l:bufname = bufname(l:buf)
         let l:bufname = empty(l:bufname) ? '[No Name]' : l:bufname
         let l:content = getbufline(l:buf, 1, '$')
@@ -182,38 +212,18 @@ function! s:FzfLines() abort
     call fzf#run(fzf#wrap({
         \ 'source': l:lines,
         \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="Lines> "'
+        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="' . a:prompt . '> "'
         \ }))
+endfunction
+
+" Fuzzy search lines in all open buffers
+function! s:FzfLines() abort
+    call s:FzfLinesHelper(filter(range(1, bufnr('$')), 'buflisted(v:val) && bufloaded(v:val)'), 'Lines')
 endfunction
 
 " Fuzzy search lines in current buffer
 function! s:FzfBLines() abort
-    let l:lines = []
-    let l:bufname = bufname('%')
-    let l:bufname = empty(l:bufname) ? '[No Name]' : l:bufname
-    let l:content = getbufline('%', 1, '$')
-    let l:idx = 1
-    for l:line in l:content
-        call add(l:lines, printf('%s:%d:%s', l:bufname, l:idx, l:line))
-        let l:idx += 1
-    endfor
-    call fzf#run(fzf#wrap({
-        \ 'source': l:lines,
-        \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 3.. --prompt="BLines> "'
-        \ }))
-endfunction
-
-" Fuzzy search word under cursor
-function! s:FzfGrepWord() abort
-    let l:word = expand('<cword>')
-    if empty(l:word) | return | endif
-    let l:cmd = 'rg --column --line-number --no-heading --color=always --smart-case ' . shellescape(l:word)
-    call fzf#run(fzf#wrap({
-        \ 'source': l:cmd,
-        \ 'sink': function('s:GrepSelect'),
-        \ 'options': '--ansi --delimiter : --nth 4.. --prompt="GrepWord: ' . l:word . '> "'
-        \ }))
+    call s:FzfLinesHelper([bufnr('%')], 'BLines')
 endfunction
 
 " Helper to get current mode for statusline
@@ -531,8 +541,8 @@ nnoremap = <C-a>
 nnoremap <leader>,  :call <SID>FzfBuffers()<CR>
 nnoremap <leader>/  :history /<CR>
 nnoremap <leader>:  :history :<CR>
-nnoremap <leader><space> :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
-nnoremap <leader>fa :call fzf#run(fzf#wrap({'options': '--multi'}))<CR>
+nnoremap <leader><space> :FZF<CR>
+nnoremap <leader>fa :call <SID>FzfAllFiles()<CR>
 nnoremap <leader>fb :call <SID>FzfBuffers()<CR>
 nnoremap <leader>ff :call <SID>FzfGitFiles()<CR>
 nnoremap <leader>fg :call <SID>FzfGrep()<CR>
