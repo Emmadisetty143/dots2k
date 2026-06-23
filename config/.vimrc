@@ -275,6 +275,67 @@ function! BufferTabLine() abort
     return l:s
 endfunction
 
+" Project-wide search and replace via Ripgrep and Quickfix
+function! s:GetDelimiter(find, replace) abort
+    let l:delimiters = ['/', '#', '@', '_', '~', ';']
+    for l:d in l:delimiters
+        if stridx(a:find, l:d) == -1 && stridx(a:replace, l:d) == -1
+            return l:d
+        endif
+    endfor
+    return '/'
+endfunction
+
+function! s:Replace(query) abort
+    let l:find = a:query
+    if empty(l:find)
+        let l:find = input('Find: ')
+    endif
+    if empty(l:find)
+        return
+    endif
+
+    let l:replace = input('Replace with: ')
+
+    " Populate quickfix list using Ripgrep
+    let l:grep_cmd = 'rg --vimgrep --smart-case ' . shellescape(l:find)
+    let l:output = system(l:grep_cmd)
+    if v:shell_error != 0 || empty(l:output)
+        echohl WarningMsg | echo 'No matches found for: ' . l:find | echohl None
+        return
+    endif
+
+    " Load results into quickfix
+    let l:lines = split(l:output, "\n")
+    call setqflist([], 'r', {'title': 'Search: ' . l:find, 'lines': l:lines})
+
+    let l:original_buf = bufnr('%')
+    copen
+
+    " Pick a safe delimiter for the substitution command
+    let l:d = s:GetDelimiter(l:find, l:replace)
+
+    " Prompt user for confirmation mode
+    let l:choice = confirm('Replace all occurrences?', "&Yes\n&Confirm each\n&Cancel", 1)
+    if l:choice == 1
+        " Replace all instantly across all files and update
+        let l:cmd = 'cfdo %s' . l:d . l:find . l:d . l:replace . l:d . 'g | update'
+        try
+            execute l:cmd
+            execute 'buffer ' . l:original_buf
+            echo 'Replaced all occurrences of "' . l:find . '" with "' . l:replace . '"'
+        catch
+            echohl ErrorMsg | echo 'Replacement failed: ' . v:exception | echohl None
+        endtry
+    elseif l:choice == 2
+        " Pre-populate the command line for manual step-by-step confirmation
+        let l:replace_cmd = 'cfdo %s' . l:d . l:find . l:d . l:replace . l:d . 'gc | update'
+        call feedkeys(':' . l:replace_cmd, 'n')
+    endif
+endfunction
+
+command! -nargs=? Replace call s:Replace(<q-args>)
+
 " Lightweight Autopairs
 function! s:ClosePair(char) abort
     if getline('.')[col('.') - 1] == a:char
@@ -410,6 +471,12 @@ nnoremap <leader>fs :call <SID>FzfBLines()<CR>
 nnoremap <leader>ft :command<CR>
 nnoremap <leader>fu :undolist<CR>
 nnoremap <leader>fw :call <SID>FzfGrepWord()<CR>
+
+" Replace / substitution helper mappings
+nnoremap <leader>ra :Replace<CR>
+nnoremap <leader>rb :%s///gc<Left><Left><Left><Left>
+nnoremap <leader>rs :%s/\<<C-r><C-w>\>/\<C-r>\<C-w>/gI<Left><Left><Left>
+nnoremap <leader>rw :Replace <C-r><C-w><CR>
 
 " Git Search Keymaps (Lazygit & Shell Git Integration)
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
