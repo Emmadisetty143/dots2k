@@ -54,8 +54,7 @@ set tabline=%!BufferTabLine()
 set showtabline=2 " Always show the buffer list at the top
 set clipboard=unnamedplus " Copy Paste from System Clipboard
 set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
-setlocal spell spelllang=en "Set spell check language to en
-setlocal spell! " Disable spellchecking by default
+set spelllang=en " Set spell check language to en (disabled by default)
 syntax enable      " Turn on syntax highlighting
 
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
@@ -453,25 +452,25 @@ augroup NetrwCustom
 augroup END
 
 function! NetrwSettings() abort
-    nmap <buffer> a %
-    nmap <buffer> A d
-    nmap <buffer> r R
-    nmap <buffer> d D
-    nmap <buffer> H gh
-    nmap <buffer> q :Lexplore<CR>
-    nmap <buffer> l <CR>
+    nnoremap <buffer> a %
+    nnoremap <buffer> A d
+    nnoremap <buffer> r R
+    nnoremap <buffer> d D
+    nnoremap <buffer> H gh
+    nnoremap <buffer> q :Lexplore<CR>
+    nnoremap <buffer> l <CR>
 endfunction
 
 " Keybindings
 let mapleader = ' '
 inoremap jj <Esc>
-nmap <leader>ee :Lexplore<CR>
-nmap H :bprevious<CR>
-nmap L :bnext<CR>
+nnoremap <leader>ee :Lexplore<CR>
+nnoremap H :bprevious<CR>
+nnoremap L :bnext<CR>
 nnoremap <leader>rc :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
-nmap <leader>s :setlocal spell!<CR>
-nmap <leader>t :term<CR>
-nmap <leader>ww :w<CR>
+nnoremap <leader>s :setlocal spell!<CR>
+nnoremap <leader>t :term<CR>
+nnoremap <leader>ww :w<CR>
 nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
 
 " auto-close pairs
@@ -648,7 +647,7 @@ nnoremap <leader>sK :resize +5<CR>
 nnoremap <leader>sL :vertical resize +10<CR>
 
 " Buffer Control & Quit Operations
-nmap Q :qa!<CR>
+nnoremap Q :qa!<CR>
 nnoremap <leader>x  :x<CR>
 nnoremap <leader>qa :qall<CR>
 nnoremap <leader>qb :bw<CR>
