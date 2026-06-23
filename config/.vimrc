@@ -24,7 +24,6 @@ set ttimeout       " Set timeout
 set ttimeoutlen=100
 set synmaxcol=500  " Syntax limit
 set laststatus=2   " Always show status line
-set ruler          " Show cursor position
 set scrolloff=8    " Scroll offset
 set sidescrolloff=5
 set autoread       " Reload files on change
@@ -49,6 +48,7 @@ set undofile       " Enable persistent undos across files
 set tabline=%!BufferTabLine()
 set showtabline=2 " Always show the buffer list at the top
 set clipboard+=unnamedplus " Copy Paste from System Clipboard
+set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
 setlocal spell spelllang=en "Set spell check language to en
 setlocal spell! " Disable spellchecking by default
 syntax enable      " Turn on syntax highlighting
@@ -234,6 +234,38 @@ function! s:FzfGrepWord() abort
         \ 'options': '--ansi --delimiter : --nth 4.. --prompt="GrepWord: ' . l:word . '> "'
         \ }))
 endfunction
+
+" Helper to get current mode for statusline
+function! StatuslineMode() abort
+    let l:m = mode()
+    let l:modes = {
+        \ 'n':      'N',
+        \ 'v':      'V',
+        \ 'V':      'VL',
+        \ "\<C-v>": 'VB',
+        \ 'i':      'I',
+        \ 'R':      'R',
+        \ 'c':      'C',
+        \ 't':      'T',
+        \ }
+    return get(l:modes, l:m, l:m)
+endfunction
+
+" Helper to get current file size for statusline
+function! StatuslineFileSize() abort
+    let l:bytes = getfsize(expand('%:p'))
+    if l:bytes <= 0
+        return ''
+    endif
+    if l:bytes < 1024
+        return l:bytes . 'B'
+    elseif l:bytes < 1048576
+        return printf('%.1fKiB', l:bytes / 1024.0)
+    else
+        return printf('%.1fMiB', l:bytes / 1048576.0)
+    endif
+endfunction
+
 
 " Seamless Vim/Tmux Split Navigation
 function! s:TmuxNavigate(direction) abort
@@ -503,11 +535,27 @@ autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
 
 " Tone down cursor line, status bar, and tabline highlight colors globally
 autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
-autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=15 ctermbg=0 guifg=#cdd6f4 guibg=#000000
+autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=14 ctermbg=0 guifg=#89b4fa guibg=#000000
 autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
 autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
 autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
 autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
+autocmd ColorScheme * highlight MsgArea ctermfg=15 guifg=#ffffff
+
+augroup StatuslineColors
+    autocmd!
+    " Green for Insert and Replace modes
+    autocmd ModeChanged *:i highlight StatusLine ctermfg=10 guifg=#a6e3a1
+    autocmd ModeChanged *:R highlight StatusLine ctermfg=10 guifg=#a6e3a1
+    " Yellow for Visual modes (char, line, block)
+    autocmd ModeChanged *:v highlight StatusLine ctermfg=3 guifg=#f9e2af
+    autocmd ModeChanged *:V highlight StatusLine ctermfg=3 guifg=#f9e2af
+    execute "autocmd ModeChanged *:\<C-v> highlight StatusLine ctermfg=3 guifg=#f9e2af"
+    " Red for Terminal mode
+    autocmd ModeChanged *:t highlight StatusLine ctermfg=9 guifg=#f38ba8
+    " Default blue for Normal mode
+    autocmd ModeChanged *:n highlight StatusLine ctermfg=14 guifg=#89b4fa
+augroup END
 
 " Load colorscheme with fallback to built-in 'slate'
 try
