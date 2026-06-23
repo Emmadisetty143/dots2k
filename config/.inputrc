@@ -1,6 +1,16 @@
 # do not bell on tab-completion
 #set bell-style none
 
+# Immediate single-tab autocomplete lists
+set show-all-if-ambiguous on
+
+# Case-insensitive autocomplete
+set completion-ignore-case on
+
+# Prefix history search
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
 set meta-flag on
 set input-meta on
 set convert-meta off
