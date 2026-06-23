@@ -55,6 +55,7 @@ set showtabline=2 " Always show the buffer list at the top
 set clipboard=unnamedplus " Copy Paste from System Clipboard
 set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
 set spelllang=en " Set spell check language to en (disabled by default)
+set background=dark " Use dark background
 syntax enable      " Turn on syntax highlighting
 
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } } " FZF Floating Window Layout Configuration
