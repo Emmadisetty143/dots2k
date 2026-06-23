@@ -505,6 +505,15 @@ vnoremap p "_dP
 vnoremap < <gv
 vnoremap > >gv
 
+" Easy home-row line start and end navigation
+nnoremap gh ^
+vnoremap gh ^
+nnoremap gl $
+vnoremap gl $
+
+" Keep cursor position when joining lines
+nnoremap J mzJ`z
+
 " Drag Visual selections
 vnoremap K xkP`[V`]
 vnoremap J xp`[V`]
@@ -523,7 +532,7 @@ nnoremap <silent> ]Q :clast<CR>
 nnoremap <silent> [l :lprev<CR>
 nnoremap <silent> ]l :lnext<CR>
 nnoremap <silent> [L :lfirst<CR>
-nnoremap <silent> [L :llast<CR>
+nnoremap <silent> ]L :llast<CR>
 nnoremap <silent> [b :bprevious<CR>
 nnoremap <silent> ]b :bnext<CR>
 nnoremap <silent> [B :bfirst<CR>
