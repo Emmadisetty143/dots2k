@@ -612,18 +612,21 @@ if (has("termguicolors"))
     set termguicolors
 endif
 
-" Always use terminal background
-autocmd ColorScheme * highlight! Normal ctermbg=NONE guibg=NONE
-autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
+augroup ColorOverrides
+    autocmd!
+    " Always use terminal background
+    autocmd ColorScheme * highlight! Normal ctermbg=NONE guibg=NONE
+    autocmd ColorScheme * highlight! Terminal ctermbg=NONE guibg=NONE
 
-" Tone down cursor line, status bar, and tabline highlight colors globally
-autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
-autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=14 ctermbg=0 guifg=#89b4fa guibg=#000000
-autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
-autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
-autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
-autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
-autocmd ColorScheme * highlight MsgArea ctermfg=15 guifg=#ffffff
+    " Tone down cursor line, status bar, and tabline highlight colors globally
+    autocmd ColorScheme * highlight CursorLine cterm=NONE ctermbg=235 guibg=#222530
+    autocmd ColorScheme * highlight StatusLine cterm=NONE ctermfg=14 ctermbg=0 guifg=#89b4fa guibg=#000000
+    autocmd ColorScheme * highlight StatusLineNC cterm=NONE ctermfg=8 ctermbg=0 guifg=#585b70 guibg=#000000
+    autocmd ColorScheme * highlight TabLineSel cterm=NONE ctermfg=15 ctermbg=235 guifg=#ffffff guibg=#252535
+    autocmd ColorScheme * highlight TabLine cterm=NONE ctermfg=244 ctermbg=234 guifg=#a6adc8 guibg=#181825
+    autocmd ColorScheme * highlight TabLineFill cterm=NONE ctermbg=0 guibg=#000000
+    autocmd ColorScheme * highlight MsgArea ctermfg=15 guifg=#ffffff
+augroup END
 
 augroup StatuslineColors
     autocmd!
