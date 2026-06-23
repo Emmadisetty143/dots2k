@@ -74,6 +74,11 @@ augroup GeneralAutocmds
     autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
     " Remove trailing whitespace on write
     autocmd BufWritePre * %s/\s\+$//e
+    " Close help, quickfix, and man buffers with 'q'
+    autocmd FileType help,qf,man nnoremap <buffer><silent> q :close<CR>
+    " Automatically check and reload files modified outside of Vim
+    autocmd FocusGained * if mode() !~ '\v(c|t)' | silent! checktime | endif
+    autocmd BufEnter * if &buftype == '' && filereadable(expand('%')) && mode() !~ '\v(c|t)' | silent! checktime % | endif
     " Resize splits if window got resized
     autocmd VimResized * tabdo wincmd =
     " Wrap and check spell in text filetypes
