@@ -23,8 +23,10 @@ set ttimeout       " Set timeout
 set ttimeoutlen=100
 set synmaxcol=500  " Syntax limit
 set laststatus=2   " Always show status line
-set scrolloff=8    " Scroll offset
-set sidescrolloff=5
+set scrolloff=10   " Scroll offset
+set sidescrolloff=8
+set completeopt=menu,menuone,noselect " Better popup completion
+set wildmode=longest:full,full " Better commandline autocomplete
 set autoread       " Reload files on change
 set smartcase      " Case-sensitive search if capital letter is typed
 set confirm        " Ask to save changes on exiting modified buffer
@@ -70,7 +72,7 @@ augroup GeneralAutocmds
     " Remove trailing whitespace and auto-create directory on write
     autocmd BufWritePre * %s/\s\+$//e | call s:AutoCreateDir()
     " Close help, quickfix, and man buffers with 'q'
-    autocmd FileType help,qf,man nnoremap <buffer><silent> q :close<CR>
+    autocmd FileType help,qf,man,netrw,gitcommit nnoremap <buffer><silent> q :close<CR>
     " Resize splits if window got resized
     autocmd VimResized * tabdo wincmd =
     " Wrap and check spell in text filetypes
@@ -352,9 +354,15 @@ nnoremap <silent> [q :cprev<CR>
 nnoremap - <C-x>
 nnoremap = <C-a>
 
+" Undo split breakpoints
+inoremap , ,<C-g>u
+inoremap . .<C-g>u
+inoremap ; ;<C-g>u
+
 " General Keybindings
 let mapleader = ' '
 inoremap jj <Esc>
+tnoremap JJ <C-\><C-n>
 nnoremap H :bprevious<CR>
 nnoremap L :bnext<CR>
 nnoremap <leader>s :setlocal spell!<CR>
