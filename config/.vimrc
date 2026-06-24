@@ -141,6 +141,22 @@ function! s:FzfHistory() abort
     call fzf#run(fzf#wrap({'source': filter(copy(v:oldfiles), 'filereadable(expand(v:val))'), 'options': '--prompt="History> "'}))
 endfunction
 
+" Run ranger to edit a file (hijacks directories to replace netrw)
+function! s:RangerChooser(...) abort
+    let t = tempname()
+    exec 'silent !ranger --choosefile='.shellescape(t).(a:0 ? ' '.shellescape(a:1) : '')
+    if filereadable(t)
+        exec 'edit '.fnameescape(readfile(t)[0]) | call delete(t)
+    endif
+    redraw!
+endfunction
+
+augroup RangerHijack
+    au!
+    au VimEnter * silent! au! FileExplorer
+    au BufEnter * if isdirectory(expand("<amatch>")) | call s:RangerChooser(expand("<amatch>")) | endif
+augroup END
+
 " Helper to get current mode for statusline
 function! StatuslineMode() abort
     return get({'n':'N','v':'V','V':'VL',"\<C-v>":'VB','i':'I','R':'R','c':'C','t':'T'}, mode(), mode())
@@ -278,40 +294,6 @@ function! s:TmuxNavigate(dir) abort
     endif
 endfunction
 
-" Netrw settings
-let g:netrw_liststyle = 3
-let g:netrw_banner = 0  " Hide help banner to match nvim-tree
-let g:netrw_winsize = 25 " Match default Neovim explorer width
-let g:netrw_browse_split = 4 " Open files in previous active window (retains sidebar)
-let g:netrw_altv = 1         " Open vertical splits on the right
-let g:netrw_list_hide = ''   " Show hidden files (dotfiles) by default
-
-augroup NetrwCustom
-    autocmd!
-    autocmd FileType netrw call NetrwSettings()
-augroup END
-
-function! NetrwSettings() abort
-    nmap <buffer> a %
-    nmap <buffer> A d
-    nmap <buffer> r R
-    nmap <buffer> d D
-    nmap <buffer> H gh
-    nmap <buffer> q :Lexplore<CR>
-    nmap <buffer> l <CR>
-endfunction
-
-" Keybindings
-let mapleader = ' '
-inoremap jj <Esc>
-nnoremap <leader>ee :Lexplore<CR>
-nnoremap H :bprevious<CR>
-nnoremap L :bnext<CR>
-nnoremap <leader>s :setlocal spell!<CR>
-nnoremap <leader>t :term<CR>
-nnoremap <leader>ww :w<CR>
-nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
-
 " Autopair keybindings
 inoremap ( ()<Left>
 inoremap [ []<Left>
@@ -370,6 +352,24 @@ nnoremap <silent> [q :cprev<CR>
 nnoremap - <C-x>
 nnoremap = <C-a>
 
+" General Keybindings
+let mapleader = ' '
+inoremap jj <Esc>
+nnoremap H :bprevious<CR>
+nnoremap L :bnext<CR>
+nnoremap <leader>s :setlocal spell!<CR>
+nnoremap <leader>t :term<CR>
+nnoremap <leader>ww :w<CR>
+nnoremap <silent> <Esc> :nohlsearch<CR><Esc>
+
+" Edit Files
+nnoremap <leader>ea :b#<CR>
+nnoremap <leader>ec :call fzf#run(fzf#wrap({'dir': expand('~/.config'), 'options': '--prompt="Config> "'}))<CR>
+nnoremap <leader>ee :call <SID>RangerChooser()<CR>
+nnoremap <leader>en :enew<CR>
+nnoremap <leader>es :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
+nnoremap <leader>ev :edit $MYVIMRC<CR>
+
 " Fuzzy search maps matching pickme.nvim / Seeker
 nnoremap <leader><space> :FZF<CR>
 nnoremap <leader>fa :call fzf#run(fzf#wrap({'options': '--prompt="Files> "'}))<CR>
@@ -401,13 +401,6 @@ nnoremap <leader>it :put =strftime('## %r')<CR>
 " Git Search Keymaps (Lazygit & Shell Git Integration)
 nnoremap <C-g> :silent !lazygit<CR>:redraw!<CR>
 nnoremap <leader>gg :silent !lazygit<CR>:redraw!<CR>
-
-" Edit Files
-nnoremap <leader>ea :b#<CR>
-nnoremap <leader>ec :call fzf#run(fzf#wrap({'dir': expand('~/.config'), 'options': '--prompt="Config> "'}))<CR>
-nnoremap <leader>en :enew<CR>
-nnoremap <leader>er :source $MYVIMRC<CR>:echo "Vimrc sourced!"<CR>
-nnoremap <leader>ev :edit $MYVIMRC<CR>
 
 " Split Creation and Navigation
 nnoremap <leader>s` <C-w>p
@@ -485,4 +478,3 @@ silent! runtime plugin/spellfile.vim   " Auto-download missing spellfiles
 silent! runtime ftplugin/man.vim       " Enable :Man command to view man pages
 silent! runtime plugin/logiPat.vim     " Boolean logical search patterns (:LogiPat)
 silent! runtime plugin/fzf.vim         " Fuzzy finder integration
-silent! packadd netrw                  " File explorer
