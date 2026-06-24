@@ -4,14 +4,51 @@
 #   [[ -f ~/.config/shell/p10k.mise.zsh ]] && source ~/.config/shell/p10k.mise.zsh
 
 () {
+    # Cache global configurations at shell startup
+    typeset -gA POWERLEVEL9K_MISE_GLOBAL_VERSIONS
+    if (( $+commands[mise] )); then
+        local tool version
+        while read -r tool version; do
+            [[ -n "$tool" ]] && POWERLEVEL9K_MISE_GLOBAL_VERSIONS[$tool]="$version"
+        done < <(mise ls --offline 2>/dev/null | awk '{for (i=1; i<=NF; i++) {if ($i ~ /^~\/\.config\/mise\/config\.toml$/ || $i ~ /^~\/\.tool-versions$/ || $i ~ /^~\/\.mise\.toml$/) {print $1, $2; break}}}')
+    fi
+
+    # User configurations (can be overridden in ~/.zshrc or prompt config)
+    [[ -z "${POWERLEVEL9K_MISE_MAX_SEGMENTS}" ]] && typeset -g POWERLEVEL9K_MISE_MAX_SEGMENTS=2
+    [[ -z "${POWERLEVEL9K_MISE_HIDE_GLOBAL}" ]] && typeset -g POWERLEVEL9K_MISE_HIDE_GLOBAL=true
+
     function prompt_mise() {
         local dir tool version
+        local -A seen
+        local -i count=0
+        local -i max_segments=$POWERLEVEL9K_MISE_MAX_SEGMENTS
+
         for dir in $path; do
-            if [[ "$dir" =~ "mise/installs/([^/]+)/([^/]+)(/bin)?$" ]]; then
-                tool="${(U)match[1]}"
-                version="${match[2]}"
-                [[ "$tool" == "USAGE" ]] && continue
-                p10k segment -r -i "${tool}_ICON" -s "$tool" -t "$version"
+            if [[ "$dir" == *mise/installs/* ]]; then
+                local resolved_dir="${dir:A}"
+                if [[ "$resolved_dir" =~ "mise/installs/([^/]+)/([^/]+)(/bin)?$" ]]; then
+                    tool="${(U)match[1]}"
+                    version="${match[2]}"
+                    [[ "$tool" == "USAGE" ]] && continue
+                    [[ -n "${seen[$tool]}" ]] && continue
+
+                    # Hide if version matches global configuration
+                    if [[ "$POWERLEVEL9K_MISE_HIDE_GLOBAL" == "true" ]]; then
+                        local lower_tool="${(L)tool}"
+                        if [[ "${POWERLEVEL9K_MISE_GLOBAL_VERSIONS[$lower_tool]}" == "$version" ]]; then
+                            continue
+                        fi
+                    fi
+
+                    # Check max segments limit
+                    if (( max_segments > 0 && count >= max_segments )); then
+                        break
+                    fi
+
+                    p10k segment -r -i "${tool}_ICON" -s "$tool" -t "$version"
+                    seen[$tool]=1
+                    (( count++ ))
+                fi
             fi
         done
     }
