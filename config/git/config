@@ -46,7 +46,6 @@
 [core]
     editor = nvim
     pager = delta --dark
-    attributesFile = ~/.config/git/gitattributes.global
     ignorecase = false
 
 [credential]
