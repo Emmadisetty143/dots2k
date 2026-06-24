@@ -120,7 +120,6 @@ file_node_extensions = {
 }
 
 dir_node_exact_matches = {
-    # English
     ".git": "",
     "Desktop": "",
     "Documents": "",
@@ -131,37 +130,6 @@ dir_node_exact_matches = {
     "Public": "",
     "Templates": "",
     "Videos": "",
-    # French
-    "Bureau": "",
-    "Images": "",
-    "Musique": "",
-    "Publique": "",
-    "Téléchargements": "",
-    "Vidéos": "",
-    # Portuguese
-    "Documentos": "",
-    "Imagens": "",
-    "Modelos": "",
-    "Música": "",
-    "Público": "",
-    "Vídeos": "",
-    "Área de trabalho": "",
-    # Italian
-    "Documenti": "",
-    "Immagini": "",
-    "Modelli": "",
-    "Musica": "",
-    "Pubblici": "",
-    "Scaricati": "",
-    "Scrivania": "",
-    "Video": "",
-    # German
-    "Bilder": "",
-    "Dokumente": "",
-    "Musik": "",
-    "Schreibtisch": "",
-    "Vorlagen": "",
-    "Öffentlich": "",
 }
 
 file_node_exact_matches = {
@@ -197,6 +165,9 @@ file_node_exact_matches = {
     "ini": "",
     "ledger": "",
     "license": "",
+    "makefile": "",
+    "dockerfile": "",
+    "docker-compose.yml": "",
     "mimeapps.list": "",
     "node_modules": "",
     "procfile": "",
@@ -207,7 +178,15 @@ file_node_exact_matches = {
 
 def devicon(file):
     if file.is_directory:
-        return dir_node_exact_matches.get(file.relative_path, "")
+        return dir_node_exact_matches.get(file.basename, "")
+    
+    basename = file.basename
+    basename_lower = basename.lower()
+    
     return file_node_exact_matches.get(
-        file.relative_path, file_node_extensions.get(file.extension, "")
+        basename,
+        file_node_exact_matches.get(
+            basename_lower,
+            file_node_extensions.get(file.extension, "")
+        )
     )
