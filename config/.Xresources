@@ -60,7 +60,6 @@ Xcursor.size: 0
 ! URxvt
 URxvt.font: 9x15,xft:TerminessTTFNerdFontMono
 URxvt.depth: 32
-URxvt.background: [100]#222D31
 URxvt*scrollBar: false
 URxvt*mouseWheelScrollPage: false
 URxvt*cursorBlink: true
