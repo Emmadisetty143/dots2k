@@ -105,8 +105,9 @@ alias grev='git revert'
 alias greva='git revert --abort'
 alias grevc='git revert --continue'
 
-alias grH='git reset --hard origin/main'
-alias grhh='git reset --hard'
+alias grh='git reset --hard'
+alias grhh='git reset --hard HEAD'
+alias grho='git reset --hard origin/main'
 alias grhk='git reset --keep'
 alias grhs='git reset --soft'
 
