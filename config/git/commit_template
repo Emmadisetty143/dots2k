@@ -1,0 +1,16 @@
+# type(scope): subject
+# |----- Limit subject line to 50 characters ----|
+#
+# Types:
+#   feat     (New feature / Deleting a user-facing feature with '!')
+#   fix      (Bug fix)
+#   refactor (Code cleanup, deleting dead code, internal rewrites)
+#   chore    (Maintenance, deleting configs/assets, dependencies)
+#   ci       (CI/CD configurations, workflows, and build scripts)
+#   docs     (Documentation changes)
+#   style    (Formatting, white-space cleanup, no logic change)
+#   test     (Adding or correcting tests)
+#   perf     (Performance improvements)
+#
+# Body: Why is this change necessary? How does it address the issue?
+# |-------------------- Wrap body at 72 characters --------------------|
