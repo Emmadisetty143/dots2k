@@ -201,3 +201,7 @@ rcpc() { _git_run_on_files modified "\.(rb|rake)$" bundle exec rubocop -A "$@"; 
 
 rspx() { _git_run_on_files diff "_spec\.rb$" bundle exec rspec "$@"; }
 rspc() { _git_run_on_files modified "_spec\.rb$" bundle exec rspec "$@"; }
+
+plz() {
+    sudo $(fc -ln -1)
+}

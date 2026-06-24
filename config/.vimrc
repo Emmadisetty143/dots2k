@@ -49,7 +49,7 @@ set undodir=$HOME/.local/state/vim/undo " Enable undo dir
 set undofile       " Enable persistent undos across files
 set tabline=%!BufferTabLine()
 set showtabline=2  " Always show the buffer list at the top
-set clipboard=unnamedplus " Copy Paste from System Clipboard
+set clipboard=unnamedplus " Copy Paste from System Clipboard, gvim package might be needed, run vim --version | grep clipboard
 set statusline=\ %{StatuslineMode()}\ \ \ \ %l:%c\ \ \ \ %p%%\ \ \ \ %f\ %m\ %r%=%{&filetype}\ \ \ \ %{StatuslineFileSize()}\ \ \ \ %{&fileencoding?&fileencoding:&encoding}
 set background=dark " Use dark background
 syntax enable      " Turn on syntax highlighting
