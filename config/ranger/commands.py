@@ -112,3 +112,31 @@ class zi(Command):
             path = os.path.abspath(stdout.rstrip('\n'))
             if os.path.isdir(path):
                 self.fm.cd(path)
+
+
+class fzf_grep(Command):
+    """
+    :fzf_grep <query>
+
+    Fuzzy search inside files using ripgrep and fzf.
+    """
+    def execute(self):
+        import subprocess
+        import os
+        
+        query = self.rest(1)
+        if not query:
+            self.fm.open_console("fzf_grep ")
+            return
+            
+        command = f"rg --line-number --no-heading --color=always --smart-case {subprocess.list2cmdline([query])} | fzf --ansi --reverse --delimiter : --preview 'bat --color=always --style=numbers --highlight-line {{2}} --line-range :500 {{1}} 2>/dev/null || cat {{1}}'"
+        
+        fzf = self.fm.execute_command(command, universal_newlines=True, stdout=subprocess.PIPE)
+        stdout, stderr = fzf.communicate()
+        if fzf.returncode == 0:
+            parts = stdout.strip().split(':')
+            if len(parts) >= 2:
+                filepath = os.path.abspath(parts[0])
+                linenumber = parts[1]
+                self.fm.select_file(filepath)
+                self.fm.execute_console(f"shell $EDITOR +{linenumber} {filepath}")
