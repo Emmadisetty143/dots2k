@@ -39,3 +39,5 @@ export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/.npm/bin:$PATH
 export PATH=$HOME/.luarocks/bin:$PATH
 export PATH=$HOME/.bun/bin:$PATH
+
+export RIPGREP_CONFIG_PATH="$HOME/.config/.ripgreprc"

@@ -1,0 +1,22 @@
+ # Smart case matching
+--smart-case
+
+# Prevent terminal freeze on long minified lines
+--max-columns=150
+--max-columns-preview
+
+# Search hidden files (.env, .github, etc.) by default
+--hidden
+
+# Skip searching inside the .git and node_modules directory
+--glob=!.git/*
+--glob=!node_modules/*
+
+# Ignore lock and build files
+--glob=!package-lock.json
+--glob=!yarn.lock
+--glob=!pnpm-lock.yaml
+--glob=!Gemfile.lock
+--glob=!Cargo.lock
+--glob=!bun.lockb
+--glob=!.DS_Store

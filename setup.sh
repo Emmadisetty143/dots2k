@@ -41,7 +41,7 @@ declare -a termux_extra_packages=(
 declare -a config_dirs=(
     "alacritty" "autorandr" "bat" "bluetuith" "bundle" "cmus" "fish"
     "fontconfig" "git" "htop" "kitty" "lazygit" "libinput-gestures.conf"
-    "mise" "ranger" "shell" "sysinfo.conkyrc" "tmux" "topgrade.toml" "zsh"
+    "mise" "ranger" ".ripgreprc" "shell" "sysinfo.conkyrc" "tmux" "topgrade.toml" "zsh"
 )
 
 declare -a home_files=(
