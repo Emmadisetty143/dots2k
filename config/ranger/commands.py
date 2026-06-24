@@ -59,3 +59,56 @@ class fzf_select(Command):
                 self.fm.cd(fzf_file)
             else:
                 self.fm.select_file(fzf_file)
+
+
+class z(Command):
+    """
+    :z <query>
+
+    Jump to a directory using zoxide.
+    """
+    def execute(self):
+        import subprocess
+        import os
+        
+        query = self.rest(1)
+        if not query:
+            return
+        
+        try:
+            path = subprocess.check_output(
+                ['zoxide', 'query', query],
+                text=True,
+                stderr=subprocess.DEVNULL
+            ).strip()
+            if os.path.isdir(path):
+                self.fm.cd(path)
+        except subprocess.CalledProcessError:
+            self.fm.notify(f"No match found for: {query}", bad=True)
+
+
+class zi(Command):
+    """
+    :zi <query>
+
+    Interactive jump to a directory using zoxide and fzf.
+    """
+    def execute(self):
+        import subprocess
+        import os
+        
+        query = self.rest(1)
+        
+        if query:
+            zoxide_cmd = f"zoxide query -l {query}"
+        else:
+            zoxide_cmd = "zoxide query -l"
+            
+        command = f"{zoxide_cmd} | fzf +m --reverse --header='Jump to directory'"
+        
+        fzf = self.fm.execute_command(command, universal_newlines=True, stdout=subprocess.PIPE)
+        stdout, stderr = fzf.communicate()
+        if fzf.returncode == 0:
+            path = os.path.abspath(stdout.rstrip('\n'))
+            if os.path.isdir(path):
+                self.fm.cd(path)
