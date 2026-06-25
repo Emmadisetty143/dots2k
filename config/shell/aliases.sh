@@ -90,7 +90,7 @@ alias gmv="git mv"
 alias gmx="git merge -X ours"
 
 alias gp="git push"
-alias gpF='git push --force'
+alias gpff='git push --force'
 alias gpf='git push --force-with-lease --force-if-includes'
 
 alias grb='git rebase'
@@ -254,7 +254,7 @@ alias pacfu="sudo pacman -Fy"
 alias paci="sudo pacman -S"
 alias pacq="pacman -Qi"
 alias pacr="sudo pacman -Rsc"
-alias pacR="pacman -Qdtq"
+alias pacqd="pacman -Qdtq"
 # alias pacrd="pacr $(pacman -Qdtq | tr '\n' ' ')"
 alias pacs="pacman -Ss"
 alias pacl="pacman -Q"
@@ -279,7 +279,7 @@ alias syss="systemctl status"
 alias systa="sudo systemctl start"
 alias systo="sudo systemctl stop"
 alias topg="topgrade --no-retry -y"
-alias topG="topgrade --no-retry -y --only git_repos"
+alias topgg="topgrade --no-retry -y --only git_repos"
 alias vol="pulsemixer"
 alias volu="amixer sset 'Master' 10%+"
 alias vold="amixer sset 'Master' 10%-"
