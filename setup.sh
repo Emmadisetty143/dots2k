@@ -47,7 +47,7 @@ declare -a config_dirs=(
 declare -a home_files=(
     ".bashrc" ".dircolors" ".dmenurc" ".editorconfig"
     ".inputrc" ".prettierrc" ".pryrc" ".pystartup" ".reek.yml" ".typos.toml"
-    ".vimrc" "zsh/.zshenv" ".Xresources"
+    ".vimrc" ".zshenv" ".Xresources"
 )
 
 append_once() {
@@ -76,9 +76,14 @@ symlink_into() {
     local src_root="$1"
     local dest_root="$2"
     shift 2
+
     local name
     for name in "$@"; do
-        ln -sfnv "$src_root/$name" "$dest_root"
+        local src="$src_root/$name"
+        local dst="$dest_root/$name"
+
+        mkdir -p "$(dirname "$dst")"
+        ln -sfnv "$src" "$dst"
     done
 }
 
