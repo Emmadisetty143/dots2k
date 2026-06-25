@@ -1,3 +1,2 @@
 # linking ~/.zshenv to $ZDOTDIR/.zshenv
-ZDOTDIR="${${(%):-%x}:P:h}"
-
+ZDOTDIR="$HOME/.config/zsh"
