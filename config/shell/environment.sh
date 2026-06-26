@@ -24,13 +24,6 @@ export FZF_DEFAULT_OPTS="
 export FZF_CTRL_T_COMMAND='fd -t f -HF -E=.git -E=node_modules'
 export FZF_TMUX_OPTS='-p 90%'
 
-export ZDOTDIR=$HOME/.config/zsh
-export ZSH_PLUGINS_ALIAS_TIPS_TEXT="Alias: "
-export ZSH_TMUX_AUTOSTART='false'
-export ZSH_TMUX_AUTOSTART_ONCE='false'
-export ZSH_TMUX_AUTOCONNECT='false'
-export DISABLE_AUTO_TITLE='true'
-
 export PATH=$HOME/.local/bin:$PATH
 export GOPATH=$HOME/.go
 export GOBIN=$GOPATH/bin
