@@ -110,6 +110,7 @@ alias grhh='git reset --hard HEAD'
 alias grho='git reset --hard origin/main'
 alias grhk='git reset --keep'
 alias grhs='git reset --soft'
+alias grsh='git reset --soft HEAD~1'
 
 alias grm='git rm'
 alias grmc='git rm --cached'
